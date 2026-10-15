@@ -7,7 +7,6 @@ namespace UtauTtsBuilder;
 public partial class MainPage : ContentPage
 {
     private List<TtsEngineInfo> _engines = new();
-    private string? _selectedOutputDir;
 
     public MainPage()
     {
@@ -44,60 +43,52 @@ public partial class MainPage : ContentPage
         LoadEngines();
     }
 
-    private async void OnPickFolderClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            var result = await FolderPicker.Default.PickAsync();
-            if (result != null && result.IsSuccessful && result.Folder != null)
-            {
-                var path = result.Folder.Path;
-                if (string.IsNullOrEmpty(path) || path.StartsWith("content://"))
-                {
-                    await DisplayAlert("提示",
-                        "该目录不支持直接写入，请选择『内部存储』下的文件夹。", "好");
-                    return;
-                }
-                _selectedOutputDir = path;
-                OutputDirLabel.Text = "当前目录: " + path;
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("选择目录失败", ex.Message, "好");
-        }
-    }
-
-    private string GetDefaultOutputDir(string name)
+    /// <summary>
+    /// 获取基础公共存储目录：/storage/emulated/0/
+    /// </summary>
+    private static string GetExternalRoot()
     {
 #if ANDROID
-        var downloadPath = global::Android.OS.Environment
-            .GetExternalStoragePublicDirectory(
-                global::Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-        var root = downloadPath ?? FileSystem.AppDataDirectory;
-        return Path.Combine(root, "UtauTtsBuilder", name);
+        return global::Android.OS.Environment
+            .ExternalStorageDirectory?.AbsolutePath
+            ?? FileSystem.AppDataDirectory;
 #else
-        return Path.Combine(FileSystem.AppDataDirectory, "voicebanks", name);
+        return FileSystem.AppDataDirectory;
 #endif
+    }
+
+    /// <summary>
+    /// 决定输出目录
+    ///  - 无自定义路径: /storage/emulated/0/Download/UtauTtsBuilder/{name}
+    ///  - 有自定义路径: /storage/emulated/0/{自定义路径}/{name}
+    /// </summary>
+    private string ResolveOutputDir(string name, string? customRelative)
+    {
+        var root = GetExternalRoot();
+
+        if (!string.IsNullOrEmpty(customRelative))
+        {
+            // 去掉前导斜杠，规范化
+            customRelative = customRelative.Trim().TrimStart('/', '\\');
+            return Path.Combine(root, customRelative, name);
+        }
+
+        return Path.Combine(root, "Download", "UtauTtsBuilder", name);
     }
 
     private async void OnBuildClicked(object sender, EventArgs e)
     {
         int engineIdx = EnginePicker.SelectedIndex;
         var name = NameEntry.Text?.Trim();
+        var customPath = OutputDirEntry.Text?.Trim();
 
         if (engineIdx < 0 || string.IsNullOrEmpty(name))
         {
-            await DisplayAlert("提示", "请选择引擎并输入声库名称", "确定");
+            await DisplayAlertAsync("提示", "请选择引擎并输入声库名称", "确定");
             return;
         }
 
-        // 确定输出目录
-        string baseDir = _selectedOutputDir ?? GetDefaultOutputDir(name);
-        // 如果用户选了目录，就在里面再加一层 {name}
-        string outputDir = _selectedOutputDir != null
-            ? Path.Combine(baseDir, name)
-            : baseDir;
+        string outputDir = ResolveOutputDir(name, customPath);
 
         try
         {
@@ -105,7 +96,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("无法创建目录", ex.Message, "确定");
+            await DisplayAlertAsync("无法创建目录", ex.Message, "确定");
             return;
         }
 
@@ -116,7 +107,6 @@ public partial class MainPage : ContentPage
         ProgressBar.IsVisible = true;
         BuildButton.IsEnabled = false;
         RefreshBtn.IsEnabled = false;
-        PickDirBtn.IsEnabled = false;
 
         string? zipPath = null;
 
@@ -124,7 +114,6 @@ public partial class MainPage : ContentPage
         {
             await builder.BuildAsync(outputDir, name);
 
-            // ===== 自动压缩 ZIP =====
             if (ZipCheckBox.IsChecked)
             {
                 StatusLabel.Text = "正在压缩 ZIP...";
@@ -140,15 +129,13 @@ public partial class MainPage : ContentPage
                 }
             }
 
-            // ===== 完成弹窗 =====
             string msg = "声库已生成到:\n" + outputDir;
             if (zipPath != null) msg += "\n\nZIP: " + zipPath;
 
             if (zipPath != null && File.Exists(zipPath))
             {
-                var action = await DisplayAlert("完成", msg,
-                    "分享 ZIP", "关闭");
-                if (action)
+                bool share = await DisplayAlertAsync("完成", msg, "分享 ZIP", "关闭");
+                if (share)
                 {
                     await Share.Default.RequestAsync(new ShareFileRequest
                     {
@@ -159,19 +146,18 @@ public partial class MainPage : ContentPage
             }
             else
             {
-                await DisplayAlert("完成", msg, "好");
+                await DisplayAlertAsync("完成", msg, "好");
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", ex.Message, "确定");
+            await DisplayAlertAsync("错误", ex.Message, "确定");
         }
         finally
         {
             ProgressBar.IsVisible = false;
             BuildButton.IsEnabled = true;
             RefreshBtn.IsEnabled = true;
-            PickDirBtn.IsEnabled = true;
         }
     }
 }
