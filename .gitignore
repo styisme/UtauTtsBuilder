@@ -1,0 +1,24 @@
+# Build outputs
+bin/
+obj/
+*.user
+*.suo
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local
+_local/
+*.log

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#512BD4"/>
-  <text x="64" y="88" font-size="64" fill="white"
-        text-anchor="middle" font-family="sans-serif">U</text>
+  <g fill="#FFFFFF">
+    <rect x="20"  y="52" width="8" height="24" rx="4"/>
+    <rect x="34"  y="40" width="8" height="48" rx="4"/>
+    <rect x="48"  y="28" width="8" height="72" rx="4"/>
+    <rect x="62"  y="46" width="8" height="36" rx="4"/>
+    <rect x="76"  y="34" width="8" height="60" rx="4"/>
+    <rect x="90"  y="46" width="8" height="36" rx="4"/>
+    <rect x="104" y="52" width="8" height="24" rx="4"/>
+  </g>
 </svg>
