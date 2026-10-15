@@ -4,8 +4,19 @@
 > Generate UTAU voicebanks from Android system TTS engines with one tap.
 
 [![Build Android APK](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml/badge.svg)](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml)
+[![Version](https://img.shields.io/badge/version-1.0.0-512BD4)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange)](CHANGELOG.md)
+[![Contributing](https://img.shields.io/badge/contributing-welcome-brightgreen)](CONTRIBUTING.md)
+
+---
+
+## 📦 最新版本
+
+当前版本：**v1.0.0**（2026-10-16）
+
+完整版本历史请见 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 
@@ -23,7 +34,7 @@
 
 ## 📱 使用说明 / How to Use
 
-1. 从 [Releases](../../releases) 下载最新 APK 并安装
+1. 从 [Releases](../../releases/latest) 下载最新 APK 并安装
 2. 首次启动时**允许「文件和媒体」访问权限**
 3. 依次选择：
    - **声库语言**（日语 / 中文 / 英语）
@@ -74,6 +85,8 @@ dotnet build -f net10.0-android -c Release
 ### 使用 GitHub Actions 云端构建
 本项目已配置好 `.github/workflows/build-android.yml`，每次 push 到 `main` 或手动触发都会自动编译 APK，编译产物在 Actions 页面的 **Artifacts** 区域下载。
 
+> 💡 **没有本地开发环境？** 直接 Fork 仓库，在 GitHub 网页上修改代码，让 Actions 帮你编译 APK，从 Artifacts 下载到手机安装测试即可。
+
 ---
 
 ## ⚠️ 已知限制 / Known Limitations
@@ -87,7 +100,15 @@ dotnet build -f net10.0-android -c Release
 
 ## 🤝 贡献 / Contributing
 
-欢迎提交 Issue 和 PR！尤其是：
+欢迎提交 Issue 和 PR！**提交前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)**，其中包含：
+
+- 本地开发环境配置
+- 代码风格与提交规范（Conventional Commits）
+- 分支模型与 PR 流程
+- 发布流程与版本号规则
+
+**近期想优先做的事**：
+
 - 更精确的 `oto.ini` 自动估算算法
 - 更多语言 reclist（韩语、西班牙语等）
 - UI/UX 改进
@@ -105,6 +126,18 @@ dotnet build -f net10.0-android -c Release
 - [.NET MAUI](https://github.com/dotnet/maui) — 跨平台框架
 - [UTAU](http://utau2008.xrea.jp/) — 经典歌声合成软件
 - [OpenUtau](https://github.com/stakira/OpenUtau) — 现代 UTAU 替代方案
+- [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) — 变更日志规范
+- [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) — 提交规范
+
+---
+
+## 📚 相关文档
+
+| 文档 | 说明 |
+|---|---|
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更历史 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |
+| [LICENSE](LICENSE) | MIT 协议 |
 
 ---
 
