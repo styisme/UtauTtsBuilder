@@ -2,221 +2,264 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="UtauTtsBuilder.MainPage"
-             BackgroundColor="#F7F7FB"
-             Title="UTAU 声库生成器">
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{StaticResource Md3Surface}">
 
     <ContentPage.Resources>
-        <Style x:Key="SectionLabel" TargetType="Label">
-            <Setter Property="FontSize" Value="13" />
+        <!-- ===== MD3 调色板 (种子色 #6750A4) ===== -->
+        <Color x:Key="Md3Primary">#6750A4</Color>
+        <Color x:Key="Md3OnPrimary">#FFFFFF</Color>
+        <Color x:Key="Md3PrimaryContainer">#EADDFF</Color>
+        <Color x:Key="Md3OnPrimaryContainer">#21005D</Color>
+        <Color x:Key="Md3SecondaryContainer">#E8DEF8</Color>
+        <Color x:Key="Md3OnSecondaryContainer">#1D192B</Color>
+        <Color x:Key="Md3Surface">#FEF7FF</Color>
+        <Color x:Key="Md3SurfaceVariant">#E7E0EC</Color>
+        <Color x:Key="Md3OnSurface">#1D1B20</Color>
+        <Color x:Key="Md3OnSurfaceVariant">#49454F</Color>
+        <Color x:Key="Md3Outline">#79747E</Color>
+        <Color x:Key="Md3OutlineVariant">#CAC4D0</Color>
+        <Color x:Key="Md3SurfaceContainer">#F3EDF7</Color>
+
+        <!-- ===== 排版样式 ===== -->
+        <Style x:Key="Md3Headline" TargetType="Label">
+            <Setter Property="FontSize" Value="32" />
             <Setter Property="FontAttributes" Value="Bold" />
-            <Setter Property="TextColor" Value="#374151" />
+            <Setter Property="TextColor" Value="{StaticResource Md3OnSurface}" />
+        </Style>
+
+        <Style x:Key="Md3TitleMedium" TargetType="Label">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource Md3OnSurface}" />
             <Setter Property="Margin" Value="4,0,0,0" />
         </Style>
 
-        <Style x:Key="HintLabel" TargetType="Label">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="TextColor" Value="#9CA3AF" />
+        <Style x:Key="Md3BodySmall" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{StaticResource Md3OnSurfaceVariant}" />
             <Setter Property="Margin" Value="4,0,0,0" />
         </Style>
 
-        <Style x:Key="Card" TargetType="Border">
-            <Setter Property="Stroke" Value="#E5E7EB" />
+        <!-- ===== 输入框容器 ===== -->
+        <Style x:Key="Md3TextField" TargetType="Border">
+            <Setter Property="Stroke" Value="{StaticResource Md3Outline}" />
             <Setter Property="StrokeThickness" Value="1" />
-            <Setter Property="BackgroundColor" Value="White" />
-            <Setter Property="Padding" Value="12,2" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="Padding" Value="16,4" />
             <Setter Property="StrokeShape">
                 <Setter.Value>
-                    <RoundRectangle CornerRadius="10" />
+                    <RoundRectangle CornerRadius="8" />
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="BackgroundColor" Value="#512BD4" />
-            <Setter Property="TextColor" Value="White" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="HeightRequest" Value="52" />
-            <Setter Property="FontAttributes" Value="Bold" />
+        <!-- ===== 卡片 ===== -->
+        <Style x:Key="Md3Card" TargetType="Border">
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{StaticResource Md3SurfaceContainer}" />
+            <Setter Property="Padding" Value="16,14" />
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="12" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== 按钮 ===== -->
+        <Style x:Key="Md3FilledButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource Md3Primary}" />
+            <Setter Property="TextColor" Value="{StaticResource Md3OnPrimary}" />
+            <Setter Property="CornerRadius" Value="28" />
+            <Setter Property="HeightRequest" Value="56" />
             <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="Padding" Value="24,0" />
         </Style>
 
-        <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="BackgroundColor" Value="#F3F0FF" />
-            <Setter Property="TextColor" Value="#512BD4" />
-            <Setter Property="BorderColor" Value="#DDD6FE" />
-            <Setter Property="BorderWidth" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="HeightRequest" Value="44" />
+        <Style x:Key="Md3TonalButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource Md3SecondaryContainer}" />
+            <Setter Property="TextColor" Value="{StaticResource Md3OnSecondaryContainer}" />
+            <Setter Property="CornerRadius" Value="24" />
+            <Setter Property="HeightRequest" Value="48" />
             <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="Padding" Value="20,0" />
         </Style>
 
-        <Style x:Key="GhostButton" TargetType="Button">
+        <Style x:Key="Md3OutlinedButton" TargetType="Button">
             <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="TextColor" Value="#6B7280" />
-            <Setter Property="BorderColor" Value="#E5E7EB" />
+            <Setter Property="TextColor" Value="{StaticResource Md3Primary}" />
+            <Setter Property="BorderColor" Value="{StaticResource Md3Outline}" />
             <Setter Property="BorderWidth" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="HeightRequest" Value="44" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="CornerRadius" Value="24" />
+            <Setter Property="HeightRequest" Value="48" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="20,0" />
         </Style>
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="18,24,18,40" Spacing="20">
+        <VerticalStackLayout Padding="16,24,16,48" Spacing="24">
 
-            <!-- ===== 顶部标题 ===== -->
-            <VerticalStackLayout Spacing="6">
-                <Label Text="UTAU 声库生成器"
-                       FontSize="26" FontAttributes="Bold"
-                       TextColor="#111827" />
-                <Label Text="从系统 TTS 引擎一键生成声库"
-                       FontSize="12" TextColor="#6B7280" />
+            <!-- ===== Large Top App Bar 区 ===== -->
+            <VerticalStackLayout Spacing="6" Margin="4,8,4,0">
+                <Label Text="UTAU 声库生成器" Style="{StaticResource Md3Headline}" />
+                <Label Text="从系统 TTS 引擎一键生成"
+                       Style="{StaticResource Md3BodySmall}"
+                       Margin="4,0,0,0" />
             </VerticalStackLayout>
 
-            <!-- ===== ① 语言 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="① 声库语言" Style="{StaticResource SectionLabel}" />
-                <Border Style="{StaticResource Card}">
+            <!-- ===== ① 声库语言 ===== -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="① 声库语言" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3TextField}">
                     <Picker x:Name="LanguagePicker"
                             Title="选择语言"
-                            TextColor="#111827"
-                            TitleColor="#9CA3AF"
+                            TitleColor="{StaticResource Md3OnSurfaceVariant}"
+                            TextColor="{StaticResource Md3OnSurface}"
                             FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
             <!-- ===== ② TTS 引擎 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="② TTS 引擎" Style="{StaticResource SectionLabel}" />
-                <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="② TTS 引擎" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3TextField}">
                     <Picker x:Name="EnginePicker"
                             Title="请选择引擎"
-                            TextColor="#111827"
-                            TitleColor="#9CA3AF"
+                            TitleColor="{StaticResource Md3OnSurfaceVariant}"
+                            TextColor="{StaticResource Md3OnSurface}"
                             FontSize="15"
                             SelectedIndexChanged="OnEngineChanged" />
                 </Border>
                 <Button x:Name="RefreshBtn"
                         Text="刷新引擎列表"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{StaticResource Md3TonalButton}"
                         Clicked="OnRefreshClicked" />
             </VerticalStackLayout>
 
             <!-- ===== ③ 声库名称 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="③ 声库名称" Style="{StaticResource SectionLabel}" />
-                <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="③ 声库名称" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="NameEntry"
                            Placeholder="例如: 小艺"
-                           PlaceholderColor="#9CA3AF"
-                           TextColor="#111827"
+                           PlaceholderColor="{StaticResource Md3OnSurfaceVariant}"
+                           TextColor="{StaticResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
             <!-- ===== ④ 图标 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="④ 图标（可选）" Style="{StaticResource SectionLabel}" />
+            <VerticalStackLayout Spacing="10">
+                <Label Text="④ 图标（可选）" Style="{StaticResource Md3TitleMedium}" />
                 <Label Text="建议 100×100 的 PNG / BMP / JPG"
-                       Style="{StaticResource HintLabel}" />
+                       Style="{StaticResource Md3BodySmall}"
+                       Margin="4,-4,0,0" />
                 <Label x:Name="IconLabel"
                        Text="未选择"
-                       FontSize="12" TextColor="#6B7280"
+                       FontSize="13"
+                       TextColor="{StaticResource Md3OnSurfaceVariant}"
                        Margin="4,0,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickIconBtn"
                             Text="选择图标"
-                            Style="{StaticResource SecondaryButton}"
+                            Style="{StaticResource Md3TonalButton}"
                             Clicked="OnPickIconClicked" />
                     <Button Grid.Column="1"
                             x:Name="ClearIconBtn"
                             Text="清除"
-                            Style="{StaticResource GhostButton}"
+                            Style="{StaticResource Md3OutlinedButton}"
                             Clicked="OnClearIconClicked" />
                 </Grid>
             </VerticalStackLayout>
 
             <!-- ===== ⑤ 立绘 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="⑤ 立绘（可选）" Style="{StaticResource SectionLabel}" />
-                <Label Text="仅 OpenUtau 会显示立绘，原版 UTAU 忽略"
-                       Style="{StaticResource HintLabel}" />
+            <VerticalStackLayout Spacing="10">
+                <Label Text="⑤ 立绘（可选）" Style="{StaticResource Md3TitleMedium}" />
+                <Label Text="仅 OpenUtau 会显示立绘"
+                       Style="{StaticResource Md3BodySmall}"
+                       Margin="4,-4,0,0" />
                 <Label x:Name="PortraitLabel"
                        Text="未选择"
-                       FontSize="12" TextColor="#6B7280"
+                       FontSize="13"
+                       TextColor="{StaticResource Md3OnSurfaceVariant}"
                        Margin="4,0,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickPortraitBtn"
                             Text="选择立绘"
-                            Style="{StaticResource SecondaryButton}"
+                            Style="{StaticResource Md3TonalButton}"
                             Clicked="OnPickPortraitClicked" />
                     <Button Grid.Column="1"
                             x:Name="ClearPortraitBtn"
                             Text="清除"
-                            Style="{StaticResource GhostButton}"
+                            Style="{StaticResource Md3OutlinedButton}"
                             Clicked="OnClearPortraitClicked" />
                 </Grid>
             </VerticalStackLayout>
 
             <!-- ===== ⑥ 作者 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="⑥ 作者（可选）" Style="{StaticResource SectionLabel}" />
-                <Border Style="{StaticResource Card}">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="⑥ 作者（可选）" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="AuthorEntry"
                            Placeholder="默认: Auto-generated"
-                           PlaceholderColor="#9CA3AF"
-                           TextColor="#111827"
+                           PlaceholderColor="{StaticResource Md3OnSurfaceVariant}"
+                           TextColor="{StaticResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
             <!-- ===== ⑦ 输出路径 ===== -->
-            <VerticalStackLayout Spacing="8">
-                <Label Text="⑦ 输出路径（可选）" Style="{StaticResource SectionLabel}" />
+            <VerticalStackLayout Spacing="10">
+                <Label Text="⑦ 输出路径（可选）" Style="{StaticResource Md3TitleMedium}" />
                 <Label Text="留空 = 内部存储/Download/UtauTtsBuilder/"
-                       Style="{StaticResource HintLabel}" />
-                <Border Style="{StaticResource Card}">
+                       Style="{StaticResource Md3BodySmall}"
+                       Margin="4,-4,0,0" />
+                <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="OutputDirEntry"
                            Placeholder="例如: Music/Utau"
-                           PlaceholderColor="#9CA3AF"
-                           TextColor="#111827"
+                           PlaceholderColor="{StaticResource Md3OnSurfaceVariant}"
+                           TextColor="{StaticResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ===== ZIP 选项 ===== -->
-            <Border Style="{StaticResource Card}" Padding="12,8">
-                <HorizontalStackLayout Spacing="8">
+            <!-- ===== ZIP 选项卡片 ===== -->
+            <Border Style="{StaticResource Md3Card}">
+                <HorizontalStackLayout Spacing="12">
                     <CheckBox x:Name="ZipCheckBox"
                               IsChecked="True"
-                              Color="#512BD4" />
+                              Color="{StaticResource Md3Primary}" />
                     <Label Text="生成后自动压缩为 ZIP"
                            FontSize="14"
-                           TextColor="#111827"
+                           TextColor="{StaticResource Md3OnSurface}"
                            VerticalOptions="Center" />
                 </HorizontalStackLayout>
             </Border>
 
-            <!-- ===== 生成按钮 ===== -->
+            <!-- ===== 主操作按钮 ===== -->
             <Button x:Name="BuildButton"
                     Text="开始生成声库"
-                    Style="{StaticResource PrimaryButton}"
+                    Style="{StaticResource Md3FilledButton}"
                     Margin="0,8,0,0"
                     Clicked="OnBuildClicked" />
 
             <!-- ===== 进度条 ===== -->
             <ProgressBar x:Name="ProgressBar"
                          IsVisible="False"
-                         ProgressColor="#512BD4"
-                         HeightRequest="6" />
+                         ProgressColor="{StaticResource Md3Primary}"
+                         BackgroundColor="{StaticResource Md3SurfaceVariant}"
+                         HeightRequest="4" />
 
             <!-- ===== 状态文字 ===== -->
             <Label x:Name="StatusLabel"
                    FontSize="12"
-                   TextColor="#6B7280"
+                   TextColor="{StaticResource Md3OnSurfaceVariant}"
                    LineBreakMode="WordWrap"
                    Margin="4,0" />
 
