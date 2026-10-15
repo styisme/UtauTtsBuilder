@@ -82,21 +82,22 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
         base.Dispose();
     }
 
+    // .NET 10 中 OnDone / OnError / OnStart 的参数类型是 C# 原生的 string
     private class ProgressListener : global::Android.Speech.Tts.UtteranceProgressListener
     {
         private readonly TaskCompletionSource<bool> _tcs;
         public ProgressListener(TaskCompletionSource<bool> tcs) { _tcs = tcs; }
 
-        public override void OnDone(global::Java.Lang.String? utteranceId)
+        public override void OnDone(string? utteranceId)
         {
             _tcs.TrySetResult(true);
         }
 
-        public override void OnError(global::Java.Lang.String? utteranceId)
+        public override void OnError(string? utteranceId)
         {
             _tcs.TrySetException(new Exception("TTS 合成错误: " + utteranceId));
         }
 
-        public override void OnStart(global::Java.Lang.String? utteranceId) { }
+        public override void OnStart(string? utteranceId) { }
     }
 }

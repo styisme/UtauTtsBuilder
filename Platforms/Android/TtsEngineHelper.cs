@@ -1,3 +1,5 @@
+using AndroidTts = global::Android.Speech.Tts.TextToSpeech;
+
 namespace UtauTtsBuilder.Platforms.Android;
 
 public class TtsEngineInfo
@@ -13,13 +15,15 @@ public static class TtsEngineHelper
     public static List<TtsEngineInfo> GetAvailableEngines()
     {
         var result = new List<TtsEngineInfo>();
-        global::Android.Speech.Tts.TextToSpeech? tts = null;
+        AndroidTts? tts = null;
         try
         {
-            tts = new global::Android.Speech.Tts.TextToSpeech(
+            tts = new AndroidTts(
                 global::Microsoft.Maui.ApplicationModel.Platform.AppContext, null);
+
             var defaultEngine = tts.DefaultEngine;
             var engines = tts.Engines;
+
             if (engines != null)
             {
                 foreach (var e in engines)
@@ -36,8 +40,8 @@ public static class TtsEngineHelper
         }
         finally
         {
-            tts?.Shutdown();
-            tts?.Dispose();
+            try { tts?.Shutdown(); } catch { }
+            try { tts?.Dispose(); } catch { }
         }
         return result;
     }
