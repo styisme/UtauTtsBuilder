@@ -118,11 +118,11 @@ public static class OtoGenerator
         sb.Append("text_file_encoding: ").AppendLine(textEncoding);
         sb.AppendLine("default_phonemizer: OpenUtau.Core.DefaultPhonemizer");
 
-        char qq = (char)34;
+        // 空 subbanks（用单引号包裹空字符串，避免 YAML 解析歧义）
         sb.AppendLine("subbanks:");
-        sb.AppendLine("- color: " + qq + qq);
-        sb.AppendLine("  prefix: " + qq + qq);
-        sb.AppendLine("  suffix: " + qq + qq);
+        sb.AppendLine("- color: ''");
+        sb.AppendLine("  prefix: ''");
+        sb.AppendLine("  suffix: ''");
         sb.AppendLine("  tone_ranges:");
         sb.AppendLine("  - C1-B7");
 
@@ -131,11 +131,24 @@ public static class OtoGenerator
             Path.Combine(dir, "character.yaml"), sb.ToString(), utf8);
     }
 
+    /// <summary>
+    /// 转义 YAML 字符串：若含特殊字符，用双引号包裹并转义内部引号。
+    /// </summary>
     private static string YamlEscape(string s)
     {
-        if (string.IsNullOrEmpty(s)) return new string((char)34, 2);
-        char b = (char)92;
-        return q + s.Replace(q.ToString(), b + q.ToString()) + q;
+        char q = (char)34;   // "
+        char b = (char)92;   // \
+
+        if (string.IsNullOrEmpty(s))
+            return q.ToString() + q.ToString();
+
+        bool needQuote =
+            s.Contains(':') || s.Contains('#') || s.Contains(q)
+            || s.StartsWith(' ') || s.EndsWith(' ');
+
+        if (!needQuote) return s;
+
+        return q + s.Replace(q.ToString(), b.ToString() + q.ToString()) + q;
     }
 
     private static Encoding GetSjisWithFallback()

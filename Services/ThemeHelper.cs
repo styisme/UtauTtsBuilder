@@ -9,14 +9,16 @@ public static class ThemeHelper
     public static bool TryApplyDynamicColors(ResourceDictionary dict, bool dark)
     {
 #if ANDROID
+        // Android 12 以下没有动态取色资源
         if (!OperatingSystem.IsAndroidVersionAtLeast(31))
             return false;
 
         try
         {
             var ctx = global::Microsoft.Maui.ApplicationModel.Platform.AppContext;
-            var res = ctx.Resources;
-            var theme = ctx.Theme;
+            var res = ctx?.Resources;
+            if (res == null) return false;
+            var theme = ctx?.Theme;
 
             // (key, lightRes, darkRes) —— MD3 token → Android 系统动态色资源名
             var map = new (string Key, string Light, string Dark)[]
@@ -37,13 +39,12 @@ public static class ThemeHelper
             };
 
             bool applied = false;
-            foreach (var (key, lightRes, darkRes) in map)
+            foreach (var entry in map)
             {
-                var resName = dark ? darkRes : lightRes;
-                var c = ReadColor(res, theme, resName);
-                if (c.HasValue)
+                var resName = dark ? entry.Dark : entry.Light;
+                if (TryReadColor(res, theme, resName, out var color))
                 {
-                    dict[key] = c.Value;
+                    dict[entry.Key] = color;
                     applied = true;
                 }
             }
@@ -59,23 +60,32 @@ public static class ThemeHelper
     }
 
 #if ANDROID
-    private static Color? ReadColor(
+#pragma warning disable CA1416 // 调用方已用 IsAndroidVersionAtLeast(31) 保证
+    private static bool TryReadColor(
         global::Android.Content.Res.Resources res,
         global::Android.Content.Res.Resources.Theme? theme,
-        string name)
+        string name,
+        out Color color)
     {
+        color = Colors.Transparent;
         try
         {
             int id = res.GetIdentifier(name, "color", "android");
-            if (id == 0) return null;
+            if (id == 0) return false;
+
             int argb = res.GetColor(id, theme);
-            return Color.FromRgba(
+            color = Color.FromRgba(
                 (byte)((argb >> 16) & 0xFF),
                 (byte)((argb >> 8) & 0xFF),
                 (byte)(argb & 0xFF),
                 (byte)((argb >> 24) & 0xFF));
+            return true;
         }
-        catch { return null; }
+        catch
+        {
+            return false;
+        }
     }
+#pragma warning restore CA1416
 #endif
 }
