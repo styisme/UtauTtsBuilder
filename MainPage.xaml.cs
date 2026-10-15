@@ -19,6 +19,10 @@ public partial class MainPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
+        // 每次回到主页时重新应用主题（设置页可能改过）
+        ThemeService.Apply();
+
         if (_engines.Count == 0) LoadEngines();
     }
 
@@ -63,6 +67,11 @@ public partial class MainPage : ContentPage
     {
         _engines.Clear();
         LoadEngines();
+    }
+
+    private async void OnSettingsClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new SettingsPage());
     }
 
     // ===== 自动填写声库名 =====

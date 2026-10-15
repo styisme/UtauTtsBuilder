@@ -103,7 +103,6 @@ public static class OtoGenerator
 
         if (!string.IsNullOrEmpty(portraitFileName))
         {
-            char q = (char)34;
             sb.Append("portrait: ").AppendLine(YamlEscape(portraitFileName));
             sb.AppendLine("portrait_opacity: 0.67");
             sb.AppendLine("portrait_height: 720");
@@ -135,7 +134,6 @@ public static class OtoGenerator
     private static string YamlEscape(string s)
     {
         if (string.IsNullOrEmpty(s)) return new string((char)34, 2);
-        char q = (char)34;
         char b = (char)92;
         return q + s.Replace(q.ToString(), b + q.ToString()) + q;
     }

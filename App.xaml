@@ -4,6 +4,95 @@
              x:Class="UtauTtsBuilder.App">
     <Application.Resources>
         <ResourceDictionary>
+            <!-- ===== MD3 浅色基线（默认值，运行时可被替换） ===== -->
+            <Color x:Key="Md3Primary">#6750A4</Color>
+            <Color x:Key="Md3OnPrimary">#FFFFFF</Color>
+            <Color x:Key="Md3PrimaryContainer">#EADDFF</Color>
+            <Color x:Key="Md3OnPrimaryContainer">#21005D</Color>
+            <Color x:Key="Md3SecondaryContainer">#E8DEF8</Color>
+            <Color x:Key="Md3OnSecondaryContainer">#1D192B</Color>
+            <Color x:Key="Md3Surface">#FEF7FF</Color>
+            <Color x:Key="Md3SurfaceVariant">#E7E0EC</Color>
+            <Color x:Key="Md3OnSurface">#1D1B20</Color>
+            <Color x:Key="Md3OnSurfaceVariant">#49454F</Color>
+            <Color x:Key="Md3Outline">#79747E</Color>
+            <Color x:Key="Md3OutlineVariant">#CAC4D0</Color>
+            <Color x:Key="Md3SurfaceContainer">#F3EDF7</Color>
+
+            <!-- ===== 通用排版与组件样式 ===== -->
+            <Style x:Key="Md3Headline" TargetType="Label">
+                <Setter Property="FontSize" Value="32" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3OnSurface}" />
+            </Style>
+
+            <Style x:Key="Md3TitleMedium" TargetType="Label">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3OnSurface}" />
+                <Setter Property="Margin" Value="4,0,0,0" />
+            </Style>
+
+            <Style x:Key="Md3BodySmall" TargetType="Label">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3OnSurfaceVariant}" />
+                <Setter Property="Margin" Value="4,0,0,0" />
+            </Style>
+
+            <Style x:Key="Md3TextField" TargetType="Border">
+                <Setter Property="Stroke" Value="{DynamicResource Md3Outline}" />
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="BackgroundColor" Value="Transparent" />
+                <Setter Property="Padding" Value="16,4" />
+                <Setter Property="StrokeShape">
+                    <Setter.Value>
+                        <RoundRectangle CornerRadius="8" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Md3Card" TargetType="Border">
+                <Setter Property="Stroke" Value="Transparent" />
+                <Setter Property="StrokeThickness" Value="0" />
+                <Setter Property="BackgroundColor" Value="{DynamicResource Md3SurfaceContainer}" />
+                <Setter Property="Padding" Value="16,14" />
+                <Setter Property="StrokeShape">
+                    <Setter.Value>
+                        <RoundRectangle CornerRadius="12" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="Md3FilledButton" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{DynamicResource Md3Primary}" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3OnPrimary}" />
+                <Setter Property="CornerRadius" Value="28" />
+                <Setter Property="HeightRequest" Value="56" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Padding" Value="24,0" />
+            </Style>
+
+            <Style x:Key="Md3TonalButton" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{DynamicResource Md3SecondaryContainer}" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3OnSecondaryContainer}" />
+                <Setter Property="CornerRadius" Value="24" />
+                <Setter Property="HeightRequest" Value="48" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="Padding" Value="20,0" />
+            </Style>
+
+            <Style x:Key="Md3OutlinedButton" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+                <Setter Property="TextColor" Value="{DynamicResource Md3Primary}" />
+                <Setter Property="BorderColor" Value="{DynamicResource Md3Outline}" />
+                <Setter Property="BorderWidth" Value="1" />
+                <Setter Property="CornerRadius" Value="24" />
+                <Setter Property="HeightRequest" Value="48" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="20,0" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
