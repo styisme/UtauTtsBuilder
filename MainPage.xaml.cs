@@ -7,10 +7,13 @@ namespace UtauTtsBuilder;
 public partial class MainPage : ContentPage
 {
     private List<TtsEngineInfo> _engines = new();
+    private string? _iconPath;
+    private string? _portraitPath;
 
     public MainPage()
     {
         InitializeComponent();
+        InitLanguagePicker();
     }
 
     protected override void OnAppearing()
@@ -18,6 +21,25 @@ public partial class MainPage : ContentPage
         base.OnAppearing();
         if (_engines.Count == 0) LoadEngines();
     }
+
+    private void InitLanguagePicker()
+    {
+        LanguagePicker.ItemsSource = new List<string>
+        {
+            ReclistProvider.GetDisplayName(VoicebankLanguage.Japanese),
+            ReclistProvider.GetDisplayName(VoicebankLanguage.Chinese),
+            ReclistProvider.GetDisplayName(VoicebankLanguage.English),
+        };
+        LanguagePicker.SelectedIndex = 0;
+    }
+
+    private VoicebankLanguage GetSelectedLanguage() =>
+        LanguagePicker.SelectedIndex switch
+        {
+            1 => VoicebankLanguage.Chinese,
+            2 => VoicebankLanguage.English,
+            _ => VoicebankLanguage.Japanese
+        };
 
     private void LoadEngines()
     {
@@ -43,9 +65,82 @@ public partial class MainPage : ContentPage
         LoadEngines();
     }
 
-    /// <summary>
-    /// 获取基础公共存储目录：/storage/emulated/0/
-    /// </summary>
+    // ===== 自动填写声库名 =====
+    private void OnEngineChanged(object sender, EventArgs e)
+    {
+        if (EnginePicker.SelectedIndex < 0 || EnginePicker.SelectedIndex >= _engines.Count)
+            return;
+        if (!string.IsNullOrWhiteSpace(NameEntry.Text))
+            return;
+
+        var label = _engines[EnginePicker.SelectedIndex].Label;
+        if (string.IsNullOrWhiteSpace(label)) return;
+
+        int idx = -1;
+        for (int i = 2; i < label.Length; i++)
+        {
+            if (char.IsDigit(label[i])) { idx = i; break; }
+        }
+        var name = idx > 0 ? label.Substring(0, idx).TrimEnd('.', ' ', '-') : label;
+        if (!string.IsNullOrWhiteSpace(name))
+            NameEntry.Text = name;
+    }
+
+    // ===== 图标 =====
+    private async void OnPickIconClicked(object sender, EventArgs e)
+    {
+        var p = await PickImageAsync("选择图标");
+        if (p != null) { _iconPath = p; IconLabel.Text = "已选择: " + Path.GetFileName(p); }
+    }
+
+    private void OnClearIconClicked(object sender, EventArgs e)
+    {
+        _iconPath = null; IconLabel.Text = "未选择";
+    }
+
+    // ===== 立绘 =====
+    private async void OnPickPortraitClicked(object sender, EventArgs e)
+    {
+        var p = await PickImageAsync("选择立绘");
+        if (p != null) { _portraitPath = p; PortraitLabel.Text = "已选择: " + Path.GetFileName(p); }
+    }
+
+    private void OnClearPortraitClicked(object sender, EventArgs e)
+    {
+        _portraitPath = null; PortraitLabel.Text = "未选择";
+    }
+
+    private async Task<string?> PickImageAsync(string title)
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = title,
+                FileTypes = FilePickerFileType.Images
+            });
+            if (result == null) return null;
+
+            var ext = Path.GetExtension(result.FileName);
+            if (string.IsNullOrEmpty(ext)) ext = ".png";
+
+            var local = Path.Combine(FileSystem.CacheDirectory,
+                "pick_" + Guid.NewGuid().ToString("N") + ext);
+
+            using (var src = await result.OpenReadAsync())
+            using (var dst = File.Create(local))
+            {
+                await src.CopyToAsync(dst);
+            }
+            return local;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("选择图片失败", ex.Message, "好");
+            return null;
+        }
+    }
+
     private static string GetExternalRoot()
     {
 #if ANDROID
@@ -57,23 +152,25 @@ public partial class MainPage : ContentPage
 #endif
     }
 
-    /// <summary>
-    /// 决定输出目录
-    ///  - 无自定义路径: /storage/emulated/0/Download/UtauTtsBuilder/{name}
-    ///  - 有自定义路径: /storage/emulated/0/{自定义路径}/{name}
-    /// </summary>
     private string ResolveOutputDir(string name, string? customRelative)
     {
         var root = GetExternalRoot();
+        var safeName = SanitizeFileName(name);
 
         if (!string.IsNullOrEmpty(customRelative))
         {
-            // 去掉前导斜杠，规范化
-            customRelative = customRelative.Trim().TrimStart('/', '\\');
-            return Path.Combine(root, customRelative, name);
+            customRelative = customRelative.Trim().TrimStart('/', (char)92);
+            return Path.Combine(root, customRelative, safeName);
         }
 
-        return Path.Combine(root, "Download", "UtauTtsBuilder", name);
+        return Path.Combine(root, "Download", "UtauTtsBuilder", safeName);
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        foreach (var c in Path.GetInvalidFileNameChars())
+            name = name.Replace(c, '_');
+        return name.Trim();
     }
 
     private async void OnBuildClicked(object sender, EventArgs e)
@@ -81,6 +178,7 @@ public partial class MainPage : ContentPage
         int engineIdx = EnginePicker.SelectedIndex;
         var name = NameEntry.Text?.Trim();
         var customPath = OutputDirEntry.Text?.Trim();
+        var author = AuthorEntry.Text?.Trim();
 
         if (engineIdx < 0 || string.IsNullOrEmpty(name))
         {
@@ -90,19 +188,19 @@ public partial class MainPage : ContentPage
 
         string outputDir = ResolveOutputDir(name, customPath);
 
-        try
-        {
-            Directory.CreateDirectory(outputDir);
-        }
+        try { Directory.CreateDirectory(outputDir); }
         catch (Exception ex)
         {
             await DisplayAlertAsync("无法创建目录", ex.Message, "确定");
             return;
         }
 
+        var language = GetSelectedLanguage();
         var engine = _engines[engineIdx];
+
         var progress = new Progress<string>(msg => { StatusLabel.Text = msg; });
-        var builder = new VoicebankBuilder(engine.Name, progress);
+        var builder = new VoicebankBuilder(
+            engine.Name, progress, language, _iconPath, _portraitPath, author);
 
         ProgressBar.IsVisible = true;
         BuildButton.IsEnabled = false;
@@ -119,7 +217,7 @@ public partial class MainPage : ContentPage
                 StatusLabel.Text = "正在压缩 ZIP...";
                 try
                 {
-                    zipPath = outputDir.TrimEnd('/', '\\') + ".zip";
+                    zipPath = outputDir.TrimEnd('/', (char)92) + ".zip";
                     if (File.Exists(zipPath)) File.Delete(zipPath);
                     ZipFile.CreateFromDirectory(outputDir, zipPath);
                 }
@@ -129,8 +227,9 @@ public partial class MainPage : ContentPage
                 }
             }
 
-            string msg = "声库已生成到:\n" + outputDir;
-            if (zipPath != null) msg += "\n\nZIP: " + zipPath;
+            string msg = "声库已生成到:" + Environment.NewLine + outputDir;
+            if (zipPath != null)
+                msg += Environment.NewLine + Environment.NewLine + "ZIP: " + zipPath;
 
             if (zipPath != null && File.Exists(zipPath))
             {

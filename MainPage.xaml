@@ -4,25 +4,54 @@
              x:Class="UtauTtsBuilder.MainPage"
              Title="UTAU 声库生成器">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="16">
+        <VerticalStackLayout Padding="20" Spacing="14">
+
             <Label Text="UTAU 声库自动生成器"
                    FontSize="24" FontAttributes="Bold" />
-            <Label Text="从系统 TTS 引擎自动生成 UTAU 日语 CV 声库"
+            <Label Text="从系统 TTS 引擎自动生成 UTAU 声库"
                    FontSize="12" TextColor="Gray" />
             <BoxView HeightRequest="1" Color="LightGray" />
 
-            <Label Text="① 选择 TTS 引擎" FontAttributes="Bold" />
-            <Picker x:Name="EnginePicker" Title="请选择引擎" />
-            <Button x:Name="RefreshBtn" Text="刷新引擎列表" Clicked="OnRefreshClicked" />
+            <Label Text="① 声库语言" FontAttributes="Bold" />
+            <Picker x:Name="LanguagePicker" Title="选择语言" />
 
-            <Label Text="② 声库名称" FontAttributes="Bold" />
+            <Label Text="② TTS 引擎" FontAttributes="Bold" />
+            <Picker x:Name="EnginePicker" Title="请选择引擎"
+                    SelectedIndexChanged="OnEngineChanged" />
+            <Button x:Name="RefreshBtn" Text="刷新引擎列表"
+                    Clicked="OnRefreshClicked" />
+
+            <Label Text="③ 声库名称" FontAttributes="Bold" />
             <Entry x:Name="NameEntry" Placeholder="例如: 小艺" />
 
-            <Label Text="③ 自定义输出路径（可留空）" FontAttributes="Bold" />
+            <Label Text="④ 图标（可选）" FontAttributes="Bold" />
+            <Label Text="建议 100x100 的 PNG/BMP/JPG 图片"
+                   FontSize="11" TextColor="Gray" />
+            <Label x:Name="IconLabel" Text="未选择"
+                   FontSize="12" TextColor="DarkGray" />
+            <HorizontalStackLayout Spacing="8">
+                <Button x:Name="PickIconBtn" Text="选择图标"
+                        Clicked="OnPickIconClicked" />
+                <Button x:Name="ClearIconBtn" Text="清除"
+                        Clicked="OnClearIconClicked" />
+            </HorizontalStackLayout>
+
+            <Label Text="⑤ 立绘（可选，仅 OpenUtau）" FontAttributes="Bold" />
+            <Label x:Name="PortraitLabel" Text="未选择"
+                   FontSize="12" TextColor="DarkGray" />
+            <HorizontalStackLayout Spacing="8">
+                <Button x:Name="PickPortraitBtn" Text="选择立绘"
+                        Clicked="OnPickPortraitClicked" />
+                <Button x:Name="ClearPortraitBtn" Text="清除"
+                        Clicked="OnClearPortraitClicked" />
+            </HorizontalStackLayout>
+
+            <Label Text="⑥ 作者（可选）" FontAttributes="Bold" />
+            <Entry x:Name="AuthorEntry" Placeholder="默认: Auto-generated" />
+
+            <Label Text="⑦ 输出路径（可选）" FontAttributes="Bold" />
             <Label Text="留空 = 内部存储/Download/UtauTtsBuilder/"
-                   FontSize="12" TextColor="Gray" />
-            <Label Text="也可填：Music/Utau 或 Documents/声库 等相对路径"
-                   FontSize="11" TextColor="DarkGray" />
+                   FontSize="11" TextColor="Gray" />
             <Entry x:Name="OutputDirEntry"
                    Placeholder="例如: Music/Utau" />
 
@@ -41,6 +70,7 @@
                          ProgressColor="#512BD4" />
             <Label x:Name="StatusLabel" LineBreakMode="WordWrap"
                    FontSize="12" TextColor="DarkSlateGray" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

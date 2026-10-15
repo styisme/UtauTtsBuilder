@@ -8,14 +8,16 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
     private TaskCompletionSource<bool>? _initTcs;
     private readonly string? _enginePackage;
     private readonly object _lock = new();
+    private string _pendingLanguage = "ja-JP";
 
     public TtsSynthesizer(string? enginePackage = null)
     {
         _enginePackage = enginePackage;
     }
 
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(string languageCode = "ja-JP")
     {
+        _pendingLanguage = languageCode;
         _initTcs = new TaskCompletionSource<bool>();
         _tts = new AndroidTts(
             global::Microsoft.Maui.ApplicationModel.Platform.AppContext,
@@ -32,12 +34,19 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
     {
         if (status == global::Android.Speech.Tts.OperationResult.Success && _tts != null)
         {
-            var result = _tts.SetLanguage(global::Java.Util.Locale.Japanese);
+            global::Java.Util.Locale locale = _pendingLanguage switch
+            {
+                "zh-CN" => global::Java.Util.Locale.China,
+                "en-US" => global::Java.Util.Locale.Us,
+                _ => global::Java.Util.Locale.Japanese
+            };
+
+            var result = _tts.SetLanguage(locale);
             if (result == global::Android.Speech.Tts.LanguageAvailableResult.MissingData ||
                 result == global::Android.Speech.Tts.LanguageAvailableResult.NotSupported)
             {
-                _initTcs?.TrySetException(
-                    new Exception("该 TTS 引擎不支持日语 (ja-JP)"));
+                _initTcs?.TrySetException(new Exception(
+                    "该 TTS 引擎不支持语言 " + _pendingLanguage + "，请换引擎或语言"));
                 return;
             }
             _tts.SetSpeechRate(0.85f);
@@ -82,22 +91,16 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
         base.Dispose();
     }
 
-    // .NET 10 中 OnDone / OnError / OnStart 的参数类型是 C# 原生的 string
     private class ProgressListener : global::Android.Speech.Tts.UtteranceProgressListener
     {
         private readonly TaskCompletionSource<bool> _tcs;
         public ProgressListener(TaskCompletionSource<bool> tcs) { _tcs = tcs; }
 
-        public override void OnDone(string? utteranceId)
-        {
-            _tcs.TrySetResult(true);
-        }
-
+        public override void OnDone(string? utteranceId) { _tcs.TrySetResult(true); }
         public override void OnError(string? utteranceId)
         {
             _tcs.TrySetException(new Exception("TTS 合成错误: " + utteranceId));
         }
-
         public override void OnStart(string? utteranceId) { }
     }
 }
