@@ -1,0 +1,98 @@
+using Android.OS;
+using Android.Speech.Tts;
+using Java.Util;
+
+namespace UtauTtsBuilder.Platforms.Android;
+
+public class TtsSynthesizer : Java.Lang.Object, TextToSpeech.IOnInitListener
+{
+    private TextToSpeech? _tts;
+    private TaskCompletionSource<bool>? _initTcs;
+    private readonly string? _enginePackage;
+    private readonly object _lock = new();
+
+    public TtsSynthesizer(string? enginePackage = null)
+    {
+        _enginePackage = enginePackage;
+    }
+
+    public async Task InitializeAsync()
+    {
+        _initTcs = new TaskCompletionSource<bool>();
+        _tts = new TextToSpeech(
+            global::Microsoft.Maui.ApplicationModel.Platform.AppContext,
+            this,
+            _enginePackage);
+
+        var completed = await Task.WhenAny(_initTcs.Task, Task.Delay(5000));
+        if (completed != _initTcs.Task)
+            throw new Exception("TTS 初始化超时");
+        await _initTcs.Task;
+    }
+
+    public void OnInit(OperationResult status)
+    {
+        if (status == OperationResult.Success && _tts != null)
+        {
+            var result = _tts.SetLanguage(Locale.Japanese);
+            if (result == LanguageAvailableResult.MissingData ||
+                result == LanguageAvailableResult.NotSupported)
+            {
+                _initTcs?.TrySetException(
+                    new Exception("该 TTS 引擎不支持日语 (ja-JP)"));
+                return;
+            }
+            _tts.SetSpeechRate(0.85f);
+            _tts.SetPitch(1.0f);
+            _initTcs?.TrySetResult(true);
+        }
+        else
+        {
+            _initTcs?.TrySetException(new Exception("TTS 初始化失败: " + status));
+        }
+    }
+
+    public Task SynthesizeToFileAsync(string text, string outputPath)
+    {
+        if (_tts == null)
+            throw new InvalidOperationException("TTS 未初始化");
+
+        var tcs = new TaskCompletionSource<bool>();
+        var utteranceId = Guid.NewGuid().ToString();
+
+        lock (_lock)
+        {
+            _tts.SetOnUtteranceProgressListener(new ProgressListener(tcs));
+            if (File.Exists(outputPath)) File.Delete(outputPath);
+            var file = new Java.IO.File(outputPath);
+            var result = _tts.SynthesizeToFile(text, new Bundle(), file, utteranceId);
+            if (result != OperationResult.Success)
+                throw new Exception("SynthesizeToFile 调用失败: " + result);
+        }
+
+        var completed = Task.WhenAny(tcs.Task, Task.Delay(10000)).Result;
+        if (completed != tcs.Task)
+            throw new Exception("合成 " + text + " 超时");
+        return tcs.Task;
+    }
+
+    public new void Dispose()
+    {
+        try { _tts?.Stop(); } catch { }
+        try { _tts?.Shutdown(); } catch { }
+        try { _tts?.Dispose(); } catch { }
+        base.Dispose();
+    }
+
+    private class ProgressListener : Java.Lang.Object, TextToSpeech.IOnUtteranceProgressListener
+    {
+        private readonly TaskCompletionSource<bool> _tcs;
+        public ProgressListener(TaskCompletionSource<bool> tcs) { _tcs = tcs; }
+        public override void OnDone(string? utteranceId) { _tcs.TrySetResult(true); }
+        public override void OnError(string? utteranceId)
+        {
+            _tcs.TrySetException(new Exception("TTS 合成错误: " + utteranceId));
+        }
+        public override void OnStart(string? utteranceId) { }
+    }
+}

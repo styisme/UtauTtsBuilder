@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.MainPage"
+             Title="UTAU 声库生成器">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <Label Text="UTAU 声库自动生成器"
+                   FontSize="24" FontAttributes="Bold" />
+            <Label Text="从系统 TTS 引擎自动生成 UTAU 日语 CV 声库"
+                   FontSize="12" TextColor="Gray" />
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <Label Text="① 选择 TTS 引擎" FontAttributes="Bold" />
+            <Picker x:Name="EnginePicker" Title="请选择引擎" />
+            <Button x:Name="RefreshBtn" Text="刷新引擎列表" Clicked="OnRefreshClicked" />
+
+            <Label Text="② 声库名称" FontAttributes="Bold" />
+            <Entry x:Name="NameEntry" Placeholder="例如: 小艺" />
+
+            <Label Text="③ 输出目录（留空使用默认）" FontAttributes="Bold" />
+            <Entry x:Name="OutputDirEntry" Placeholder="默认: AppData/voicebanks" />
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+            <Button x:Name="BuildButton" Text="开始生成声库"
+                    BackgroundColor="#512BD4" TextColor="White"
+                    Clicked="OnBuildClicked" />
+            <ProgressBar x:Name="ProgressBar" IsVisible="False" ProgressColor="#512BD4" />
+            <Label x:Name="StatusLabel" LineBreakMode="WordWrap"
+                   FontSize="12" TextColor="DarkSlateGray" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
