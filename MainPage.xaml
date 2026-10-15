@@ -18,16 +18,31 @@
             <Label Text="② 声库名称" FontAttributes="Bold" />
             <Entry x:Name="NameEntry" Placeholder="例如: 小艺" />
 
-            <Label Text="③ 输出目录（留空使用默认）" FontAttributes="Bold" />
-            <Entry x:Name="OutputDirEntry" Placeholder="默认: AppData/voicebanks" />
+            <Label Text="③ 输出目录" FontAttributes="Bold" />
+            <Label x:Name="OutputDirLabel"
+                   Text="默认: 内部存储/Download/UtauTtsBuilder/"
+                   FontSize="12" TextColor="Gray"
+                   LineBreakMode="WordWrap" />
+            <Button x:Name="PickDirBtn" Text="选择输出目录"
+                    Clicked="OnPickFolderClicked" />
+
+            <HorizontalStackLayout Spacing="8">
+                <CheckBox x:Name="ZipCheckBox" IsChecked="True" />
+                <Label Text="生成后自动压缩为 ZIP"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
 
             <BoxView HeightRequest="1" Color="LightGray" />
+
             <Button x:Name="BuildButton" Text="开始生成声库"
                     BackgroundColor="#512BD4" TextColor="White"
                     Clicked="OnBuildClicked" />
-            <ProgressBar x:Name="ProgressBar" IsVisible="False" ProgressColor="#512BD4" />
+
+            <ProgressBar x:Name="ProgressBar" IsVisible="False"
+                         ProgressColor="#512BD4" />
             <Label x:Name="StatusLabel" LineBreakMode="WordWrap"
                    FontSize="12" TextColor="DarkSlateGray" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
