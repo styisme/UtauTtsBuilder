@@ -1,6 +1,4 @@
-using Android.OS;
-using Java.Util;
-using AndroidTts = Android.Speech.Tts.TextToSpeech; // 使用别名解决命名冲突
+using AndroidTts = global::Android.Speech.Tts.TextToSpeech;
 
 namespace UtauTtsBuilder.Platforms.Android;
 
@@ -30,13 +28,13 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
         await _initTcs.Task;
     }
 
-    public void OnInit(Android.Speech.Tts.OperationResult status)
+    public void OnInit(global::Android.Speech.Tts.OperationResult status)
     {
-        if (status == Android.Speech.Tts.OperationResult.Success && _tts != null)
+        if (status == global::Android.Speech.Tts.OperationResult.Success && _tts != null)
         {
-            var result = _tts.SetLanguage(Locale.Japanese);
-            if (result == Android.Speech.Tts.LanguageAvailableResult.MissingData ||
-                result == Android.Speech.Tts.LanguageAvailableResult.NotSupported)
+            var result = _tts.SetLanguage(global::Java.Util.Locale.Japanese);
+            if (result == global::Android.Speech.Tts.LanguageAvailableResult.MissingData ||
+                result == global::Android.Speech.Tts.LanguageAvailableResult.NotSupported)
             {
                 _initTcs?.TrySetException(
                     new Exception("该 TTS 引擎不支持日语 (ja-JP)"));
@@ -64,9 +62,9 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
         {
             _tts.SetOnUtteranceProgressListener(new ProgressListener(tcs));
             if (File.Exists(outputPath)) File.Delete(outputPath);
-            var file = new Java.IO.File(outputPath);
-            var result = _tts.SynthesizeToFile(text, new Bundle(), file, utteranceId);
-            if (result != Android.Speech.Tts.OperationResult.Success)
+            var file = new global::Java.IO.File(outputPath);
+            var result = _tts.SynthesizeToFile(text, new global::Android.OS.Bundle(), file, utteranceId);
+            if (result != global::Android.Speech.Tts.OperationResult.Success)
                 throw new Exception("SynthesizeToFile 调用失败: " + result);
         }
 
@@ -84,22 +82,21 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
         base.Dispose();
     }
 
-    // 继承自 Android 原生的 UtteranceProgressListener，修复 CS0115 错误
-    private class ProgressListener : Android.Speech.Tts.UtteranceProgressListener
+    private class ProgressListener : global::Android.Speech.Tts.UtteranceProgressListener
     {
         private readonly TaskCompletionSource<bool> _tcs;
         public ProgressListener(TaskCompletionSource<bool> tcs) { _tcs = tcs; }
 
-        public override void OnDone(Java.Lang.String? utteranceId)
+        public override void OnDone(global::Java.Lang.String? utteranceId)
         {
             _tcs.TrySetResult(true);
         }
 
-        public override void OnError(Java.Lang.String? utteranceId)
+        public override void OnError(global::Java.Lang.String? utteranceId)
         {
             _tcs.TrySetException(new Exception("TTS 合成错误: " + utteranceId));
         }
 
-        public override void OnStart(Java.Lang.String? utteranceId) { }
+        public override void OnStart(global::Java.Lang.String? utteranceId) { }
     }
 }
