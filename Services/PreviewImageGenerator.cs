@@ -5,14 +5,23 @@ public static class PreviewImageGenerator
     /// <summary>
     /// 生成一张简单的预览 PNG：白底 + 声库名 + 音节数 + 日期
     /// </summary>
-    public static async Task<string?> GenerateAsync(
+    public static Task<string?> GenerateAsync(
+        string outputDir, string name, int wavCount, string? iconPath)
+    {
+        return Task.Run(() => Generate(outputDir, name, wavCount, iconPath));
+    }
+
+    private static string? Generate(
         string outputDir, string name, int wavCount, string? iconPath)
     {
         try
         {
             const int W = 512, H = 320;
 
-            using var bmp = new global::Android.Graphics.Bitmap(W, H);
+            var bmp = global::Android.Graphics.Bitmap.CreateBitmap(
+                W, H, global::Android.Graphics.Bitmap.Config.Argb8888!);
+            if (bmp == null) return null;
+
             using var canvas = new global::Android.Graphics.Canvas(bmp);
             canvas.DrawColor(global::Android.Graphics.Color.ParseColor("#FEF7FF"));
 
@@ -24,8 +33,10 @@ public static class PreviewImageGenerator
             canvas.DrawRect(0, 0, W, 60, barPaint);
 
             // 图标
-            int iconSize = 100;
-            int iconX = 32, iconY = 90;
+            const int iconSize = 100;
+            const int iconX = 32;
+            const int iconY = 90;
+
             if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
             {
                 try
@@ -33,8 +44,8 @@ public static class PreviewImageGenerator
                     using var iconBmp = global::Android.Graphics.BitmapFactory.DecodeFile(iconPath);
                     if (iconBmp != null)
                     {
-                        var dst = new global::Android.Graphics.Rect(iconX, iconY,
-                            iconX + iconSize, iconY + iconSize);
+                        var dst = new global::Android.Graphics.Rect(
+                            iconX, iconY, iconX + iconSize, iconY + iconSize);
                         canvas.DrawBitmap(iconBmp, null, dst, null);
                     }
                 }
@@ -58,8 +69,8 @@ public static class PreviewImageGenerator
                 TextSize = 24,
                 AntiAlias = true
             };
-            canvas.DrawText($"{wavCount} syllables", iconX + iconSize + 24,
-                iconY + 90, statPaint);
+            canvas.DrawText($"{wavCount} syllables",
+                iconX + iconSize + 24, iconY + 90, statPaint);
 
             // 底部说明
             using var footPaint = new global::Android.Graphics.Paint
@@ -76,7 +87,8 @@ public static class PreviewImageGenerator
             var path = Path.Combine(outputDir, "preview.png");
             using var fs = File.Create(path);
             bmp.Compress(global::Android.Graphics.Bitmap.CompressFormat.Png!, 100, fs);
-            await fs.FlushAsync();
+            fs.Flush();
+            bmp.Recycle();
             return path;
         }
         catch

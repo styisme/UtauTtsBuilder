@@ -94,9 +94,9 @@ public partial class SettingsPage : ContentPage
 
     private async Task ApplyThemeWithAnimation()
     {
-        await this.FadeTo(0.4, 90, Easing.CubicOut);
+        await this.FadeToAsync(0.4, 90, Easing.CubicOut);
         ThemeService.Apply();
-        await this.FadeTo(1.0, 180, Easing.CubicIn);
+        await this.FadeToAsync(1.0, 180, Easing.CubicIn);
     }
 
     private async void OnThemeModeButtonClicked(object sender, EventArgs e)
@@ -125,10 +125,10 @@ public partial class SettingsPage : ContentPage
         else if (sender == LangEnBtn) Loc.Mode = UiLanguage.English;
         else if (sender == LangJaBtn) Loc.Mode = UiLanguage.Japanese;
 
-        await this.FadeTo(0.4, 90, Easing.CubicOut);
+        await this.FadeToAsync(0.4, 90, Easing.CubicOut);
         ApplyLocalization();
         RefreshLanguageButtons();
-        await this.FadeTo(1.0, 180, Easing.CubicIn);
+        await this.FadeToAsync(1.0, 180, Easing.CubicIn);
     }
 
     private async void OnDynamicToggled(object sender, ToggledEventArgs e)
