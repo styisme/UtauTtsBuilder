@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ctrl="clr-namespace:UtauTtsBuilder.Controls"
+             x:Class="UtauTtsBuilder.PreviewImagePage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              Padding="8,12,16,12">
+            <Button Grid.Column="0"
+                    Text="←"
+                    FontSize="20"
+                    WidthRequest="44" HeightRequest="44"
+                    CornerRadius="22" Padding="0"
+                    BackgroundColor="Transparent"
+                    TextColor="{DynamicResource Md3OnSurface}"
+                    Clicked="OnBackClicked" />
+            <Label Grid.Column="1"
+                   x:Name="TitleLabel"
+                   FontSize="18" FontAttributes="Bold"
+                   TextColor="{DynamicResource Md3OnSurface}"
+                   VerticalOptions="Center"
+                   Margin="4,0,0,0" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,16" Spacing="16">
+
+                <!-- 预览图 -->
+                <Border Style="{StaticResource Md3Card}" Padding="0">
+                    <Image x:Name="PreviewImage"
+                           Aspect="AspectFit"
+                           HeightRequest="200" />
+                </Border>
+
+                <!-- 波形 -->
+                <Label x:Name="WaveSectionLabel"
+                       Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3Card}" Padding="8">
+                    <ctrl:WaveformView
+                        x:Name="Waveform"
+                        HeightRequest="120"
+                        WaveColor="{DynamicResource Md3Primary}" />
+                </Border>
+
+                <Label x:Name="WaveInfoLabel"
+                       FontSize="12"
+                       TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+
+                <!-- 操作 -->
+                <Button x:Name="PlayBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnPlayClicked" />
+
+                <Button x:Name="SampleBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnSampleClicked" />
+
+                <Button x:Name="RegenerateBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnRegenerateClicked" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

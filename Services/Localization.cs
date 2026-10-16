@@ -249,5 +249,37 @@ public static class Loc
             "UTAU Voicebank Builder — Generate UTAU voicebanks from Android system TTS engines.\n\nSupports Japanese CV / CVVC / VCV, Chinese CV, English CV, and custom reclist import.",
             "UTAU 音源ライブラリ生成 — Android のシステム TTS から UTAU 音源を生成します。\n\n日本語 CV / CVVC / VCV、中国語 CV、英語 CV、カスタム音素表の読み込みに対応。"
         ),
+        // ===== Preview / Waveform =====
+        ["preview_waveform"] = ("波形预览", "Waveform", "波形プレビュー"),
+        ["preview_play"] = ("试听首个音节", "Play first syllable", "最初の音節を再生"),
+        ["preview_sample"] = ("随机抽 3 个试听", "Play 3 random samples", "ランダム 3 つ再生"),
+        ["preview_regen"] = ("重新生成预览图", "Regenerate preview", "プレビューを再生成"),
+        ["preview_wav_count_fmt"] = ("共 {0} 个 wav 文件", "{0} wav files", "{0} 個の wav ファイル"),
+        ["action_view_preview"] = ("查看波形/试听", "View waveform / play", "波形/再生"),
+        ["action_regen_preview"] = ("生成预览图", "Generate preview image", "プレビュー画像を生成"),
+
+        // ===== Estimate =====
+        ["estimate_confirm_fmt"] = ("即将生成「{0}」\n音节数: {1}\n预计耗时: {2}\n\n继续？", "Generate \"{0}\"?\nSyllables: {1}\nEstimate: {2}\n\nContinue?", "「{0}」を生成しますか？\n音節数: {1}\n予想時間: {2}\n\n続行しますか？"),
+        ["estimate_time_fmt"] = ("约 {0}", "~{0}", "約 {0}"),
+
+        // ===== Reclist Preview =====
+        ["reclist_preview_title"] = ("音素表预览", "Reclist preview", "音素表プレビュー"),
+        ["reclist_preview_summary_fmt"] = ("共 {0} 个音节 · TTS 语言: {1}", "{0} syllables · TTS lang: {1}", "{0} 音節 · TTS 言語: {1}"),
+        ["reclist_preview_confirm"] = ("确认导入", "Confirm import", "インポート確定"),
+        ["reclist_preview_show"] = ("导入前预览", "Preview before import", "インポート前にプレビュー"),
+
+        // ===== Batch =====
+        ["batch_title"] = ("多引擎批量生成", "Batch generate", "バッチ生成"),
+        ["batch_desc"] = ("勾选要使用的引擎，会用同一个配置为每个引擎生成一个声库", "Check the engines; a voicebank will be generated for each with the same settings", "チェックしたエンジンごとに同じ設定で音源を生成します"),
+        ["batch_start"] = ("开始批量生成", "Start batch", "バッチ開始"),
+        ["batch_result_fmt"] = ("完成: {0} 成功 / {1} 失败", "Done: {0} success / {1} failed", "完了: {0} 成功 / {1} 失敗"),
+
+        // ===== Compare =====
+        ["compare_title"] = ("引擎音质对比", "Engine comparison", "エンジン比較"),
+        ["compare_desc"] = ("用所有可用引擎合成为同一个音节，供你试听对比", "Synthesize one syllable with all available engines for A/B testing", "利用可能な全エンジンで同じ音節を合成し、聞き比べできます"),
+        ["compare_start"] = ("开始对比", "Start comparison", "比較を開始"),
+        ["compare_text_ph"] = ("测试文本（默认: あ）", "Text (default: あ)", "テキスト（既定: あ）"),
+        ["compare_result_title"] = ("对比结果", "Comparison result", "比較結果"),
+        ["compare_playing_fmt"] = ("正在播放: {0}", "Playing: {0}", "再生中: {0}"),
     };
 }
