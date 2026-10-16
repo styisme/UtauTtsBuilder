@@ -3,14 +3,23 @@ namespace UtauTtsBuilder.Services;
 public enum VoicebankLanguage
 {
     Japanese,
+    JapaneseCvvc,
+    JapaneseVcv,
     Chinese,
     English,
     Custom
 }
 
+public class ReclistEntry
+{
+    public string Alias { get; set; } = "";
+    public string TtsText { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public bool IsTransition { get; set; }
+}
+
 public static class ReclistProvider
 {
-    // 自定义音素表存到 Preferences
     private const string KeyCustomReclist = "custom_reclist";
     private const string KeyCustomLanguage = "custom_language_code";
     private const string KeyCustomName = "custom_reclist_name";
@@ -26,9 +35,7 @@ public static class ReclistProvider
     {
         var sb = new System.Text.StringBuilder();
         foreach (var kv in reclist)
-        {
             sb.Append(kv.Key).Append('=').Append(kv.Value).Append('\n');
-        }
         Preferences.Default.Set(KeyCustomReclist, sb.ToString());
         Preferences.Default.Set(KeyCustomLanguage, languageCode);
         Preferences.Default.Set(KeyCustomName, name);
@@ -41,10 +48,10 @@ public static class ReclistProvider
         Preferences.Default.Remove(KeyCustomName);
     }
 
-    private static Dictionary<string, string> LoadCustomReclist()
+    private static List<ReclistEntry> LoadCustomReclist()
     {
         var raw = Preferences.Default.Get(KeyCustomReclist, "");
-        var result = new Dictionary<string, string>();
+        var result = new List<ReclistEntry>();
         if (string.IsNullOrWhiteSpace(raw)) return result;
 
         foreach (var line in raw.Split('\n'))
@@ -53,25 +60,59 @@ public static class ReclistProvider
             if (string.IsNullOrEmpty(trimmed)) continue;
             var idx = trimmed.IndexOf('=');
             if (idx <= 0) continue;
-            var k = trimmed.Substring(0, idx);
-            var v = trimmed.Substring(idx + 1);
-            result[k] = v;
+            var k = trimmed.Substring(0, idx).Trim();
+            var v = trimmed.Substring(idx + 1).Trim();
+            if (string.IsNullOrEmpty(k) || string.IsNullOrEmpty(v)) continue;
+
+            result.Add(new ReclistEntry
+            {
+                Alias = k,
+                TtsText = v,
+                FileName = SanitizeFileName(k)
+            });
         }
         return result;
     }
 
-    public static Dictionary<string, string> GetReclist(VoicebankLanguage lang) => lang switch
+    private static string SanitizeFileName(string alias)
     {
-        VoicebankLanguage.Japanese => JapaneseCvReclist.CvList,
-        VoicebankLanguage.Chinese => ChineseCvList,
-        VoicebankLanguage.English => EnglishCvList,
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in alias)
+        {
+            if (char.IsLetterOrDigit(c)) sb.Append(c);
+            else if (c == ' ' || c == '_') sb.Append('_');
+        }
+        var result = sb.ToString();
+        return string.IsNullOrEmpty(result) ? "entry" : result;
+    }
+
+    public static List<ReclistEntry> GetReclist(VoicebankLanguage lang) => lang switch
+    {
+        VoicebankLanguage.Japanese => ConvertCvDict(JapaneseCvReclist.CvList),
+        VoicebankLanguage.JapaneseCvvc => BuildJapaneseCvvc(),
+        VoicebankLanguage.JapaneseVcv => BuildJapaneseVcv(),
+        VoicebankLanguage.Chinese => ConvertCvDict(ChineseCvList),
+        VoicebankLanguage.English => ConvertCvDict(EnglishCvList),
         VoicebankLanguage.Custom => LoadCustomReclist(),
-        _ => JapaneseCvReclist.CvList
+        _ => ConvertCvDict(JapaneseCvReclist.CvList)
     };
+
+    private static List<ReclistEntry> ConvertCvDict(Dictionary<string, string> dict)
+    {
+        return dict.Select(kv => new ReclistEntry
+        {
+            Alias = kv.Key,
+            TtsText = kv.Key,
+            FileName = kv.Value,
+            IsTransition = false
+        }).ToList();
+    }
 
     public static string GetLanguageCode(VoicebankLanguage lang) => lang switch
     {
         VoicebankLanguage.Japanese => "ja-JP",
+        VoicebankLanguage.JapaneseCvvc => "ja-JP",
+        VoicebankLanguage.JapaneseVcv => "ja-JP",
         VoicebankLanguage.Chinese => "zh-CN",
         VoicebankLanguage.English => "en-US",
         VoicebankLanguage.Custom => Preferences.Default.Get(KeyCustomLanguage, "ja-JP"),
@@ -81,12 +122,172 @@ public static class ReclistProvider
     public static string GetDisplayName(VoicebankLanguage lang) => lang switch
     {
         VoicebankLanguage.Japanese => "日语 CV (69 音节)",
+        VoicebankLanguage.JapaneseCvvc => "日语 CVVC (133 音节)",
+        VoicebankLanguage.JapaneseVcv => "日语 VCV (105 音节)",
         VoicebankLanguage.Chinese => "中文 CV (78 音节)",
         VoicebankLanguage.English => "英语 CV (93 音节)",
         VoicebankLanguage.Custom => "自定义: " + CustomReclistName,
         _ => "日语 CV"
     };
 
+    // ============================================================
+    // 日语 CVVC
+    // ============================================================
+    private static List<ReclistEntry> BuildJapaneseCvvc()
+    {
+        var list = new List<ReclistEntry>();
+
+        // CV 部分
+        foreach (var kv in JapaneseCvReclist.CvList)
+        {
+            list.Add(new ReclistEntry
+            {
+                Alias = kv.Key,
+                TtsText = kv.Key,
+                FileName = kv.Value,
+                IsTransition = false
+            });
+        }
+
+        var vowels = new (string Roma, string Kana)[]
+        {
+            ("a", "あ"), ("i", "い"), ("u", "う"), ("e", "え"), ("o", "お")
+        };
+
+        // VV 过渡
+        foreach (var v1 in vowels)
+        {
+            foreach (var v2 in vowels)
+            {
+                if (v1.Roma == v2.Roma) continue;
+                list.Add(new ReclistEntry
+                {
+                    Alias = v1.Roma + " " + v2.Roma,
+                    TtsText = v1.Kana + v2.Kana,
+                    FileName = v1.Roma + "_" + v2.Roma,
+                    IsTransition = true
+                });
+            }
+        }
+
+        // VC 过渡
+        var consonants = new (string Roma, string Kana)[]
+        {
+            ("k", "か"), ("s", "さ"), ("t", "た"), ("n", "な"),
+            ("h", "は"), ("m", "ま"), ("y", "や"), ("w", "わ"), ("r", "ら")
+        };
+
+        foreach (var v in vowels)
+        {
+            foreach (var c in consonants)
+            {
+                list.Add(new ReclistEntry
+                {
+                    Alias = v.Roma + " " + c.Roma,
+                    TtsText = v.Kana + c.Kana,
+                    FileName = v.Roma + "_" + c.Roma,
+                    IsTransition = true
+                });
+            }
+        }
+
+        return list;
+    }
+
+    // ============================================================
+    // 日语 VCV（元音间连续音）
+    // ============================================================
+    private static List<ReclistEntry> BuildJapaneseVcv()
+    {
+        var list = new List<ReclistEntry>();
+
+        var vowels = new (string Roma, string Kana)[]
+        {
+            ("a", "あ"), ("i", "い"), ("u", "う"), ("e", "え"), ("o", "お")
+        };
+
+        // 1. 单独元音（CV 风格别名，无过渡）
+        foreach (var v in vowels)
+        {
+            list.Add(new ReclistEntry
+            {
+                Alias = v.Roma,
+                TtsText = v.Kana,
+                FileName = v.Roma,
+                IsTransition = false
+            });
+        }
+
+        // 2. ん：n + [元音] n
+        list.Add(new ReclistEntry
+        {
+            Alias = "n",
+            TtsText = "ん",
+            FileName = "n",
+            IsTransition = false
+        });
+
+        foreach (var v in vowels)
+        {
+            list.Add(new ReclistEntry
+            {
+                Alias = v.Roma + " n",
+                TtsText = v.Kana + "ん",
+                FileName = v.Roma + "_n",
+                IsTransition = true
+            });
+        }
+
+        // 3. 元音到元音过渡（跳过 a a、i i 等重复）
+        foreach (var v1 in vowels)
+        {
+            foreach (var v2 in vowels)
+            {
+                if (v1.Roma == v2.Roma) continue;
+                list.Add(new ReclistEntry
+                {
+                    Alias = v1.Roma + " " + v2.Roma,
+                    TtsText = v1.Kana + v2.Kana,
+                    FileName = v1.Roma + "_" + v2.Roma,
+                    IsTransition = true
+                });
+            }
+        }
+
+        // 4. 辅音行过渡：14 行 × 5 前元音 = 70
+        var consonantRows = new (string Roma, string Kana)[]
+        {
+            ("k", "か"), ("g", "が"),
+            ("s", "さ"), ("z", "ざ"),
+            ("t", "た"), ("d", "だ"),
+            ("n", "な"),
+            ("h", "は"), ("b", "ば"), ("p", "ぱ"),
+            ("m", "ま"),
+            ("y", "や"),
+            ("r", "ら"),
+            ("w", "わ"),
+        };
+
+        foreach (var c in consonantRows)
+        {
+            foreach (var v in vowels)
+            {
+                list.Add(new ReclistEntry
+                {
+                    Alias = v.Roma + " " + c.Roma + "a",
+                    TtsText = v.Kana + c.Kana,
+                    FileName = v.Roma + "_" + c.Roma + "a",
+                    IsTransition = true
+                });
+            }
+        }
+
+        return list;
+    }
+
+    // ============================================================
+    // 内置 CV 数据
+    // ============================================================
     public static readonly Dictionary<string, string> ChineseCvList = new()
     {
         ["啊"] = "a", ["哦"] = "o", ["鹅"] = "e", ["衣"] = "i", ["乌"] = "u", ["鱼"] = "v",

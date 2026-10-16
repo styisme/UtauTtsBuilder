@@ -9,6 +9,7 @@ public partial class MainPage : ContentPage
     private List<TtsEngineInfo> _engines = new();
     private string? _iconPath;
     private string? _portraitPath;
+    private List<VoicebankLanguage> _languageList = new();
 
     public MainPage()
     {
@@ -25,16 +26,18 @@ public partial class MainPage : ContentPage
 
     private void InitLanguagePicker()
     {
-        var items = new List<string>
+        _languageList = new List<VoicebankLanguage>
         {
-            ReclistProvider.GetDisplayName(VoicebankLanguage.Japanese),
-            ReclistProvider.GetDisplayName(VoicebankLanguage.Chinese),
-            ReclistProvider.GetDisplayName(VoicebankLanguage.English),
+            VoicebankLanguage.Japanese,
+            VoicebankLanguage.JapaneseCvvc,
+            VoicebankLanguage.JapaneseVcv,
+            VoicebankLanguage.Chinese,
+            VoicebankLanguage.English,
         };
 
         if (ReclistProvider.HasCustomReclist)
         {
-            items.Add(ReclistProvider.GetDisplayName(VoicebankLanguage.Custom));
+            _languageList.Add(VoicebankLanguage.Custom);
             ClearReclistBtn.IsVisible = true;
         }
         else
@@ -42,16 +45,17 @@ public partial class MainPage : ContentPage
             ClearReclistBtn.IsVisible = false;
         }
 
-        LanguagePicker.ItemsSource = items;
+        LanguagePicker.ItemsSource = _languageList
+            .Select(l => ReclistProvider.GetDisplayName(l))
+            .ToList();
         LanguagePicker.SelectedIndex = 0;
     }
 
     private VoicebankLanguage GetSelectedLanguage()
     {
         int idx = LanguagePicker.SelectedIndex;
-        if (idx == 1) return VoicebankLanguage.Chinese;
-        if (idx == 2) return VoicebankLanguage.English;
-        if (idx == 3 && ReclistProvider.HasCustomReclist) return VoicebankLanguage.Custom;
+        if (idx >= 0 && idx < _languageList.Count)
+            return _languageList[idx];
         return VoicebankLanguage.Japanese;
     }
 
@@ -84,7 +88,6 @@ public partial class MainPage : ContentPage
         await Navigation.PushAsync(new SettingsPage());
     }
 
-    // ===== 导入自定义音素表 =====
     private async void OnImportReclistClicked(object sender, EventArgs e)
     {
         try
@@ -117,7 +120,6 @@ public partial class MainPage : ContentPage
                 return;
             }
 
-            // 确定 TTS 发音语言
             string ttsLang = langFromFile;
             if (string.IsNullOrEmpty(ttsLang))
             {
@@ -134,14 +136,11 @@ public partial class MainPage : ContentPage
             if (string.IsNullOrEmpty(name)) name = "自定义";
 
             ReclistProvider.SaveCustomReclist(name, ttsLang, reclist);
-
             InitLanguagePicker();
-            LanguagePicker.SelectedIndex = LanguagePicker.ItemsSource.Count - 1;
+            LanguagePicker.SelectedIndex = _languageList.Count - 1;
 
             await DisplayAlertAsync("导入成功",
-                $"音素表: {name}\n" +
-                $"音节数: {reclist.Count}\n" +
-                $"TTS 语言: {ttsLang}",
+                $"音素表: {name}\n音节数: {reclist.Count}\nTTS 语言: {ttsLang}",
                 "好");
         }
         catch (Exception ex)
@@ -159,14 +158,6 @@ public partial class MainPage : ContentPage
         InitLanguagePicker();
     }
 
-    /// <summary>
-    /// 解析音素表文本。
-    /// 支持格式：
-    ///   别名=文件名
-    ///   别名,文件名
-    ///   别名  文件名（空格 / tab）
-    ///   # language: ja-JP  （可选，指定 TTS 语言）
-    /// </summary>
     private static Dictionary<string, string> ParseReclist(
         string content, out string languageCode)
     {
@@ -179,7 +170,6 @@ public partial class MainPage : ContentPage
             var line = raw.Trim();
             if (string.IsNullOrEmpty(line)) continue;
 
-            // 注释：检查是否指定语言
             if (line.StartsWith("#") || line.StartsWith("//"))
             {
                 var lower = line.ToLowerInvariant();
@@ -192,7 +182,6 @@ public partial class MainPage : ContentPage
                 continue;
             }
 
-            // 找分隔符
             int sep = -1;
             for (int i = 0; i < line.Length; i++)
             {
@@ -206,16 +195,15 @@ public partial class MainPage : ContentPage
             if (sep <= 0) continue;
 
             var alias = line.Substring(0, sep).Trim();
-            var fileName = line.Substring(sep + 1).Trim();
-            if (string.IsNullOrEmpty(alias) || string.IsNullOrEmpty(fileName)) continue;
+            var ttsText = line.Substring(sep + 1).Trim();
+            if (string.IsNullOrEmpty(alias) || string.IsNullOrEmpty(ttsText)) continue;
 
-            result[alias] = fileName;
+            result[alias] = ttsText;
         }
 
         return result;
     }
 
-    // ===== 自动填写声库名 =====
     private void OnEngineChanged(object sender, EventArgs e)
     {
         if (EnginePicker.SelectedIndex < 0 || EnginePicker.SelectedIndex >= _engines.Count)
@@ -236,7 +224,6 @@ public partial class MainPage : ContentPage
             NameEntry.Text = name;
     }
 
-    // ===== 图标 =====
     private async void OnPickIconClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync("选择图标");
@@ -248,7 +235,6 @@ public partial class MainPage : ContentPage
         _iconPath = null; IconLabel.Text = "未选择";
     }
 
-    // ===== 立绘 =====
     private async void OnPickPortraitClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync("选择立绘");

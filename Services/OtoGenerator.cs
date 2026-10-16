@@ -24,24 +24,43 @@ public class OtoEntry
 
 public static class OtoGenerator
 {
-    public static OtoEntry GenerateEntry(string wavPath, string alias)
+    public static OtoEntry GenerateEntry(
+        string wavPath, string alias, bool isTransition = false)
     {
         double duration = WavProcessor.GetDurationMs(wavPath);
 
-        double offset = 30;
-        double consonant = Math.Max(80, duration * 0.35);
-        double cutoff = -Math.Max(50, duration * 0.2);
-        double preutterance = Math.Max(30, consonant - 40);
-        double overlap = Math.Max(15, preutterance * 0.5);
+        double offset;
+        double consonant;
+        double cutoff;
+        double preutterance;
+        double overlap;
 
-        if (alias.Length == 1 ||
-            alias == "ん" ||
-            alias == "啊" || alias == "哦" || alias == "鹅" ||
-            alias == "衣" || alias == "乌" || alias == "鱼")
+        if (isTransition)
         {
+            // CVVC 过渡别名：音频是两个音节（如 あか），只取前段
+            offset = 20;
             consonant = Math.Max(50, duration * 0.15);
+            cutoff = -Math.Max(80, duration * 0.5);  // 从末尾倒推一半
+            preutterance = Math.Max(20, consonant - 15);
+            overlap = Math.Max(10, preutterance * 0.6);
+        }
+        else if (IsVowelOrN(alias))
+        {
+            // 元音 / ん / 单字符别名
+            offset = 30;
+            consonant = Math.Max(50, duration * 0.15);
+            cutoff = -Math.Max(50, duration * 0.2);
             preutterance = Math.Max(20, consonant - 20);
             overlap = Math.Max(10, preutterance * 0.5);
+        }
+        else
+        {
+            // CV
+            offset = 30;
+            consonant = Math.Max(80, duration * 0.35);
+            cutoff = -Math.Max(50, duration * 0.2);
+            preutterance = Math.Max(30, consonant - 40);
+            overlap = Math.Max(15, preutterance * 0.5);
         }
 
         return new OtoEntry
@@ -56,6 +75,15 @@ public static class OtoGenerator
         };
     }
 
+    private static bool IsVowelOrN(string alias)
+    {
+        if (alias.Length == 1) return true;
+        if (alias == "ん") return true;
+        if (alias == "啊" || alias == "哦" || alias == "鹅"
+            || alias == "衣" || alias == "乌" || alias == "鱼") return true;
+        return false;
+    }
+
     public static async Task WriteOtoIniAsync(
         IEnumerable<OtoEntry> entries, string outputPath)
     {
@@ -66,10 +94,8 @@ public static class OtoGenerator
         await File.WriteAllTextAsync(outputPath, sb.ToString(), sjis);
     }
 
-    // 原版 UTAU：character.txt（Shift-JIS，字段 name / image / author）
     public static async Task WriteCharacterTxtAsync(
-        string dir,
-        string name,
+        string dir, string name,
         string? iconFileName = null,
         string? author = null)
     {
@@ -86,10 +112,8 @@ public static class OtoGenerator
             Path.Combine(dir, "character.txt"), sb.ToString(), sjis);
     }
 
-    // OpenUtau：character.yaml（UTF-8，含立绘）
     public static async Task WriteCharacterYamlAsync(
-        string dir,
-        string name,
+        string dir, string name,
         string? iconFileName = null,
         string? portraitFileName = null,
         string? author = null,
@@ -118,7 +142,6 @@ public static class OtoGenerator
         sb.Append("text_file_encoding: ").AppendLine(textEncoding);
         sb.AppendLine("default_phonemizer: OpenUtau.Core.DefaultPhonemizer");
 
-        // 空 subbanks（用单引号包裹空字符串，避免 YAML 解析歧义）
         sb.AppendLine("subbanks:");
         sb.AppendLine("- color: ''");
         sb.AppendLine("  prefix: ''");
@@ -131,23 +154,14 @@ public static class OtoGenerator
             Path.Combine(dir, "character.yaml"), sb.ToString(), utf8);
     }
 
-    /// <summary>
-    /// 转义 YAML 字符串：若含特殊字符，用双引号包裹并转义内部引号。
-    /// </summary>
     private static string YamlEscape(string s)
     {
-        char q = (char)34;   // "
-        char b = (char)92;   // \
-
-        if (string.IsNullOrEmpty(s))
-            return q.ToString() + q.ToString();
-
-        bool needQuote =
-            s.Contains(':') || s.Contains('#') || s.Contains(q)
+        char q = (char)34;
+        char b = (char)92;
+        if (string.IsNullOrEmpty(s)) return q.ToString() + q.ToString();
+        bool needQuote = s.Contains(':') || s.Contains('#') || s.Contains(q)
             || s.StartsWith(' ') || s.EndsWith(' ');
-
         if (!needQuote) return s;
-
         return q + s.Replace(q.ToString(), b.ToString() + q.ToString()) + q;
     }
 

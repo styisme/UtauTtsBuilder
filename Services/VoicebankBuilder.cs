@@ -42,44 +42,58 @@ public class VoicebankBuilder
 
             var reclist = ReclistProvider.GetReclist(_language);
             var otoEntries = new List<OtoEntry>();
+
+            // TTS 文本 → 已生成音频的完整路径（用于共享）
+            var ttsCache = new Dictionary<string, string>();
+
             int total = reclist.Count;
             int current = 0;
             int failed = 0;
+            int shared = 0;
 
-            foreach (var kv in reclist)
+            foreach (var entry in reclist)
             {
                 current++;
-                var text = kv.Key;
-                var romaji = kv.Value;
+                _progress.Report("[" + current + "/" + total + "] "
+                    + entry.Alias + " ← " + entry.TtsText);
 
-                _progress.Report("[" + current + "/" + total + "] 合成: "
-                    + text + " (" + romaji + ")");
-
-                var rawPath = Path.Combine(rawDir, romaji + ".wav");
-                var finalPath = Path.Combine(outputDir, romaji + ".wav");
+                var rawPath = Path.Combine(rawDir, entry.FileName + ".wav");
+                var finalPath = Path.Combine(outputDir, entry.FileName + ".wav");
 
                 try
                 {
-                    await tts.SynthesizeToFileAsync(text, rawPath);
-
-                    if (File.Exists(rawPath) && new FileInfo(rawPath).Length > 44)
+                    if (ttsCache.TryGetValue(entry.TtsText, out var srcPath)
+                        && File.Exists(srcPath))
                     {
-                        WavProcessor.ConvertToUtauFormat(rawPath, finalPath);
-                        var entry = OtoGenerator.GenerateEntry(finalPath, text);
-                        otoEntries.Add(entry);
+                        // 复用已有音频
+                        File.Copy(srcPath, finalPath, true);
+                        shared++;
                     }
                     else
                     {
-                        failed++;
-                        _progress.Report("[" + current + "/" + total + "] "
-                            + text + ": 无输出，跳过");
+                        await tts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+
+                        if (!File.Exists(rawPath) || new FileInfo(rawPath).Length <= 44)
+                        {
+                            failed++;
+                            _progress.Report("[" + current + "/" + total + "] "
+                                + entry.Alias + ": 无输出，跳过");
+                            continue;
+                        }
+
+                        WavProcessor.ConvertToUtauFormat(rawPath, finalPath);
+                        ttsCache[entry.TtsText] = finalPath;
                     }
+
+                    var otoEntry = OtoGenerator.GenerateEntry(
+                        finalPath, entry.Alias, entry.IsTransition);
+                    otoEntries.Add(otoEntry);
                 }
                 catch (Exception ex)
                 {
                     failed++;
                     _progress.Report("[" + current + "/" + total + "] "
-                        + text + " 失败: " + ex.Message);
+                        + entry.Alias + " 失败: " + ex.Message);
                 }
             }
 
@@ -132,8 +146,8 @@ public class VoicebankBuilder
 
             try { Directory.Delete(rawDir, true); } catch { }
 
-            _progress.Report("完成！共生成 " + otoEntries.Count
-                + " 个音节，失败 " + failed + " 个");
+            _progress.Report("完成！共 " + otoEntries.Count + " 个音节，"
+                + "共享音频 " + shared + " 个，失败 " + failed + " 个");
         }
         finally
         {
