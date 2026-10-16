@@ -91,23 +91,35 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    private void OnThemeModeButtonClicked(object sender, EventArgs e)
+    // ===== 带淡入淡出动画的主题应用 =====
+    private async Task ApplyThemeWithAnimation()
+    {
+        // 变暗
+        await this.FadeTo(0.4, 90, Easing.CubicOut);
+        // 换色
+        ThemeService.Apply();
+        // 淡入
+        await this.FadeTo(1.0, 180, Easing.CubicIn);
+    }
+
+    private async void OnThemeModeButtonClicked(object sender, EventArgs e)
     {
         if (sender == ThemeAutoBtn) ThemeService.Mode = ThemeMode.Auto;
         else if (sender == ThemeLightBtn) ThemeService.Mode = ThemeMode.Light;
         else if (sender == ThemeDarkBtn) ThemeService.Mode = ThemeMode.Dark;
-        ThemeService.Apply();
+
+        await ApplyThemeWithAnimation();
         RefreshThemeButtons();
     }
 
-    private void OnUiStyleClicked(object sender, EventArgs e)
+    private async void OnUiStyleClicked(object sender, EventArgs e)
     {
         if (sender == StyleMd3Btn) UiStyleService.Style = UiStyle.Md3;
         else if (sender == StyleHarmonyBtn) UiStyleService.Style = UiStyle.Harmony;
         else if (sender == StyleUwpBtn) UiStyleService.Style = UiStyle.Uwp;
         else if (sender == StyleA4Btn) UiStyleService.Style = UiStyle.Android4;
 
-        ThemeService.Apply();
+        await ApplyThemeWithAnimation();
         RefreshUiStyleButtons();
     }
 
@@ -118,17 +130,18 @@ public partial class SettingsPage : ContentPage
         else if (sender == LangEnBtn) Loc.Mode = UiLanguage.English;
         else if (sender == LangJaBtn) Loc.Mode = UiLanguage.Japanese;
 
+        // 语言切换也用淡入淡出
+        await this.FadeTo(0.4, 90, Easing.CubicOut);
         ApplyLocalization();
         RefreshLanguageButtons();
-        await DisplayAlertAsync(Loc.T("settings_title"),
-            Loc.T("settings_language") + " ✓", Loc.T("btn_ok"));
+        await this.FadeTo(1.0, 180, Easing.CubicIn);
     }
 
-    private void OnDynamicToggled(object sender, ToggledEventArgs e)
+    private async void OnDynamicToggled(object sender, ToggledEventArgs e)
     {
         if (_initializing) return;
         ThemeService.DynamicColorEnabled = e.Value;
-        ThemeService.Apply();
+        await ApplyThemeWithAnimation();
     }
 
     private async void OnAboutClicked(object sender, EventArgs e)

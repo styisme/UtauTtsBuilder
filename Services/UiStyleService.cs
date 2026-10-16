@@ -47,7 +47,6 @@ public static class UiStyleService
         _ => "Material 3"
     };
 
-    /// <summary>除 MD3 外的风格由本服务铺色板；MD3 交给 ThemeService</summary>
     public static void Apply(ResourceDictionary d, UiStyle style)
     {
         switch (style)
@@ -58,7 +57,7 @@ public static class UiStyleService
         }
     }
 
-    // ===== 鸿蒙：蓝调 + 白色卡片 + 中圆角 =====
+    // ===== 鸿蒙 =====
     private static void ApplyHarmony(ResourceDictionary d)
     {
         d["Md3Primary"] = Color.FromArgb("#007DFF");
@@ -68,7 +67,7 @@ public static class UiStyleService
         d["Md3SecondaryContainer"] = Color.FromArgb("#E8F0FE");
         d["Md3OnSecondaryContainer"] = Color.FromArgb("#001A33");
         d["Md3Surface"] = Color.FromArgb("#F1F3F5");
-        d["Md3OnSurface"] = Color.FromArgb("#000000");
+        d["Md3OnSurface"] = Colors.Black;
         d["Md3SurfaceVariant"] = Color.FromArgb("#E5E5E5");
         d["Md3OnSurfaceVariant"] = Color.FromArgb("#666666");
         d["Md3Outline"] = Color.FromArgb("#CCCCCC");
@@ -79,7 +78,7 @@ public static class UiStyleService
         d["UiBtnSmallHeight"] = 40;
     }
 
-    // ===== UWP：Windows 蓝 + 浅灰背景 + 直角 =====
+    // ===== UWP =====
     private static void ApplyUwp(ResourceDictionary d)
     {
         d["Md3Primary"] = Color.FromArgb("#0078D4");
@@ -100,24 +99,28 @@ public static class UiStyleService
         d["UiBtnSmallHeight"] = 32;
     }
 
-    // ===== Android 4 Holo：深色 + 青色高亮 + 小圆角 =====
+    // ===== Android 4 Holo（重做）=====
+    // 参考真正的 Holo Dark 配色：
+    //   背景 #000000，主色 #33B5E5，卡片 #1A1A1A
+    //   次要文字 #999999，主文字 #CCCCCC
+    //   按钮：深灰底 #2E2E2E 或 全透明 + 青色描边
     private static void ApplyAndroid4(ResourceDictionary d)
     {
         d["Md3Primary"] = Color.FromArgb("#33B5E5");
         d["Md3OnPrimary"] = Color.FromArgb("#000000");
-        d["Md3PrimaryContainer"] = Color.FromArgb("#1A4655");
+        d["Md3PrimaryContainer"] = Color.FromArgb("#1A3D4D");
         d["Md3OnPrimaryContainer"] = Color.FromArgb("#B3E5FC");
-        d["Md3SecondaryContainer"] = Color.FromArgb("#2A2A2A");
-        d["Md3OnSecondaryContainer"] = Color.FromArgb("#E0E0E0");
+        d["Md3SecondaryContainer"] = Color.FromArgb("#2E2E2E");
+        d["Md3OnSecondaryContainer"] = Color.FromArgb("#CCCCCC");
         d["Md3Surface"] = Color.FromArgb("#000000");
-        d["Md3OnSurface"] = Color.FromArgb("#E0E0E0");
+        d["Md3OnSurface"] = Color.FromArgb("#CCCCCC");
         d["Md3SurfaceVariant"] = Color.FromArgb("#1A1A1A");
-        d["Md3OnSurfaceVariant"] = Color.FromArgb("#AAAAAA");
+        d["Md3OnSurfaceVariant"] = Color.FromArgb("#999999");
         d["Md3Outline"] = Color.FromArgb("#555555");
         d["Md3OutlineVariant"] = Color.FromArgb("#333333");
         d["Md3SurfaceContainer"] = Color.FromArgb("#1A1A1A");
-        d["UiBtnCorner"] = 4;
+        d["UiBtnCorner"] = 3;
         d["UiBtnHeight"] = 44;
-        d["UiBtnSmallHeight"] = 38;
+        d["UiBtnSmallHeight"] = 36;
     }
 }

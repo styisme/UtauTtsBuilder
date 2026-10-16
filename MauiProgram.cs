@@ -14,7 +14,7 @@ public static class MauiProgram
 #endif
 
 #if ANDROID
-        // ===== Entry / Picker 去下划线（MD3）=====
+        // Entry / Picker 去下划线
         Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping(
             "RemoveUnderline", (handler, view) =>
             {
@@ -31,16 +31,29 @@ public static class MauiProgram
                         global::Android.Graphics.Color.Transparent);
             });
 
-        // ===== Switch 去白底 =====
+        // Switch 统一样式（track + thumb）
         Microsoft.Maui.Handlers.SwitchHandler.Mapper.AppendToMapping(
-            "RemoveBackground", (handler, view) =>
+            "UnifiedSwitch", (handler, view) =>
             {
-                handler.PlatformView.BackgroundTintList =
+                var ctx = global::Microsoft.Maui.ApplicationModel.Platform.AppContext;
+                if (ctx == null) return;
+
+                // thumb 白色
+                handler.PlatformView.ThumbTintList =
                     global::Android.Content.Res.ColorStateList.ValueOf(
-                        global::Android.Graphics.Color.Transparent);
+                        global::Android.Graphics.Color.White);
+
+                // track 颜色由 MAUI 的 OnColor 属性控制
+                // 这里只统一 track 的透明度
+                var bg = handler.PlatformView.BackgroundTintList;
+                if (bg == null)
+                {
+                    handler.PlatformView.BackgroundTintList =
+                        global::Android.Content.Res.ColorStateList.ValueOf(
+                            global::Android.Graphics.Color.Transparent);
+                }
             });
 
-        // ===== RadioButton 去白底 =====
         Microsoft.Maui.Handlers.RadioButtonHandler.Mapper.AppendToMapping(
             "RemoveBackground", (handler, view) =>
             {
