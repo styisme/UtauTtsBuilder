@@ -1,3 +1,7 @@
+**🌐 语言 / Language / 言語：** 中文 | [English](README.en.md) | [日本語](README.ja.md)
+
+---
+
 # UTAU TTS Voicebank Builder
 
 > 从 Android 系统 TTS 引擎一键生成 UTAU 声库的 .NET MAUI 应用
