@@ -14,7 +14,7 @@ public static class MauiProgram
 #endif
 
 #if ANDROID
-        // ===== 移除 Entry / Picker 默认下划线（MD3 风格要求） =====
+        // ===== Entry / Picker 去下划线（MD3）=====
         Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping(
             "RemoveUnderline", (handler, view) =>
             {
@@ -25,6 +25,24 @@ public static class MauiProgram
 
         Microsoft.Maui.Handlers.PickerHandler.Mapper.AppendToMapping(
             "RemoveUnderline", (handler, view) =>
+            {
+                handler.PlatformView.BackgroundTintList =
+                    global::Android.Content.Res.ColorStateList.ValueOf(
+                        global::Android.Graphics.Color.Transparent);
+            });
+
+        // ===== Switch 去白底 =====
+        Microsoft.Maui.Handlers.SwitchHandler.Mapper.AppendToMapping(
+            "RemoveBackground", (handler, view) =>
+            {
+                handler.PlatformView.BackgroundTintList =
+                    global::Android.Content.Res.ColorStateList.ValueOf(
+                        global::Android.Graphics.Color.Transparent);
+            });
+
+        // ===== RadioButton 去白底 =====
+        Microsoft.Maui.Handlers.RadioButtonHandler.Mapper.AppendToMapping(
+            "RemoveBackground", (handler, view) =>
             {
                 handler.PlatformView.BackgroundTintList =
                     global::Android.Content.Res.ColorStateList.ValueOf(

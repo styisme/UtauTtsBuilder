@@ -11,25 +11,26 @@
             <!-- ===== 外观模式 ===== -->
             <Label Text="外观" Style="{StaticResource Md3TitleMedium}" />
 
-            <Border Style="{StaticResource Md3Card}">
-                <VerticalStackLayout Spacing="4">
-                    <RadioButton x:Name="ThemeAuto"
-                                 Content="跟随系统"
-                                 GroupName="ThemeMode"
-                                 TextColor="{DynamicResource Md3OnSurface}"
-                                 CheckedChanged="OnThemeModeChanged" />
-                    <RadioButton x:Name="ThemeLight"
-                                 Content="浅色"
-                                 GroupName="ThemeMode"
-                                 TextColor="{DynamicResource Md3OnSurface}"
-                                 CheckedChanged="OnThemeModeChanged" />
-                    <RadioButton x:Name="ThemeDark"
-                                 Content="深色"
-                                 GroupName="ThemeMode"
-                                 TextColor="{DynamicResource Md3OnSurface}"
-                                 CheckedChanged="OnThemeModeChanged" />
-                </VerticalStackLayout>
-            </Border>
+            <VerticalStackLayout Spacing="8">
+                <Button x:Name="ThemeAutoBtn"
+                        Text="跟随系统"
+                        HeightRequest="52"
+                        CornerRadius="26"
+                        FontSize="15"
+                        Clicked="OnThemeModeButtonClicked" />
+                <Button x:Name="ThemeLightBtn"
+                        Text="浅色"
+                        HeightRequest="52"
+                        CornerRadius="26"
+                        FontSize="15"
+                        Clicked="OnThemeModeButtonClicked" />
+                <Button x:Name="ThemeDarkBtn"
+                        Text="深色"
+                        HeightRequest="52"
+                        CornerRadius="26"
+                        FontSize="15"
+                        Clicked="OnThemeModeButtonClicked" />
+            </VerticalStackLayout>
 
             <!-- ===== 动态取色 ===== -->
             <Label Text="动态取色" Style="{StaticResource Md3TitleMedium}" />

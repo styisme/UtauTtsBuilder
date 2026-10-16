@@ -8,7 +8,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="16,24,16,48" Spacing="24">
 
-            <!-- ===== 大标题区 + 设置按钮 ===== -->
+            <!-- ===== 标题 + 设置按钮 ===== -->
             <Grid ColumnDefinitions="*,Auto" Margin="4,8,0,0">
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                     <Label Text="UTAU 声库生成器" Style="{StaticResource Md3Headline}" />
@@ -41,6 +41,19 @@
                             TextColor="{DynamicResource Md3OnSurface}"
                             FontSize="15" />
                 </Border>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Button Grid.Column="0"
+                            x:Name="ImportReclistBtn"
+                            Text="导入自定义音素表"
+                            Style="{StaticResource Md3TonalButton}"
+                            Clicked="OnImportReclistClicked" />
+                    <Button Grid.Column="1"
+                            x:Name="ClearReclistBtn"
+                            Text="清除"
+                            Style="{StaticResource Md3OutlinedButton}"
+                            IsVisible="False"
+                            Clicked="OnClearReclistClicked" />
+                </Grid>
             </VerticalStackLayout>
 
             <!-- ===== ② TTS 引擎 ===== -->
@@ -149,7 +162,7 @@
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ===== ZIP 选项 ===== -->
+            <!-- ===== ZIP ===== -->
             <Border Style="{StaticResource Md3Card}">
                 <HorizontalStackLayout Spacing="12">
                     <CheckBox x:Name="ZipCheckBox"

@@ -19,31 +19,41 @@ public partial class MainPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
-        // 每次回到主页时重新应用主题（设置页可能改过）
         ThemeService.Apply();
-
         if (_engines.Count == 0) LoadEngines();
     }
 
     private void InitLanguagePicker()
     {
-        LanguagePicker.ItemsSource = new List<string>
+        var items = new List<string>
         {
             ReclistProvider.GetDisplayName(VoicebankLanguage.Japanese),
             ReclistProvider.GetDisplayName(VoicebankLanguage.Chinese),
             ReclistProvider.GetDisplayName(VoicebankLanguage.English),
         };
+
+        if (ReclistProvider.HasCustomReclist)
+        {
+            items.Add(ReclistProvider.GetDisplayName(VoicebankLanguage.Custom));
+            ClearReclistBtn.IsVisible = true;
+        }
+        else
+        {
+            ClearReclistBtn.IsVisible = false;
+        }
+
+        LanguagePicker.ItemsSource = items;
         LanguagePicker.SelectedIndex = 0;
     }
 
-    private VoicebankLanguage GetSelectedLanguage() =>
-        LanguagePicker.SelectedIndex switch
-        {
-            1 => VoicebankLanguage.Chinese,
-            2 => VoicebankLanguage.English,
-            _ => VoicebankLanguage.Japanese
-        };
+    private VoicebankLanguage GetSelectedLanguage()
+    {
+        int idx = LanguagePicker.SelectedIndex;
+        if (idx == 1) return VoicebankLanguage.Chinese;
+        if (idx == 2) return VoicebankLanguage.English;
+        if (idx == 3 && ReclistProvider.HasCustomReclist) return VoicebankLanguage.Custom;
+        return VoicebankLanguage.Japanese;
+    }
 
     private void LoadEngines()
     {
@@ -72,6 +82,137 @@ public partial class MainPage : ContentPage
     private async void OnSettingsClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new SettingsPage());
+    }
+
+    // ===== 导入自定义音素表 =====
+    private async void OnImportReclistClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "选择音素表文件"
+            });
+            if (result == null) return;
+
+            string content;
+            using (var stream = await result.OpenReadAsync())
+            using (var reader = new StreamReader(stream))
+            {
+                content = await reader.ReadToEndAsync();
+            }
+
+            var reclist = ParseReclist(content, out var langFromFile);
+            if (reclist.Count == 0)
+            {
+                await DisplayAlertAsync("解析失败",
+                    "音素表里没有解析到任何音节。\n\n" +
+                    "格式要求（每行一条）：\n" +
+                    "  别名=文件名\n" +
+                    "  别名,文件名\n" +
+                    "  别名 文件名\n\n" +
+                    "以 # 开头的行为注释，可选指定 TTS 语言：\n" +
+                    "  # language: ja-JP",
+                    "好");
+                return;
+            }
+
+            // 确定 TTS 发音语言
+            string ttsLang = langFromFile;
+            if (string.IsNullOrEmpty(ttsLang))
+            {
+                var choice = await DisplayActionSheet(
+                    "选择 TTS 发音语言", "取消", null,
+                    "日语 (ja-JP)", "中文 (zh-CN)", "英语 (en-US)");
+                if (choice == "取消" || string.IsNullOrEmpty(choice)) return;
+                if (choice.StartsWith("中文")) ttsLang = "zh-CN";
+                else if (choice.StartsWith("英语")) ttsLang = "en-US";
+                else ttsLang = "ja-JP";
+            }
+
+            string name = Path.GetFileNameWithoutExtension(result.FileName);
+            if (string.IsNullOrEmpty(name)) name = "自定义";
+
+            ReclistProvider.SaveCustomReclist(name, ttsLang, reclist);
+
+            InitLanguagePicker();
+            LanguagePicker.SelectedIndex = LanguagePicker.ItemsSource.Count - 1;
+
+            await DisplayAlertAsync("导入成功",
+                $"音素表: {name}\n" +
+                $"音节数: {reclist.Count}\n" +
+                $"TTS 语言: {ttsLang}",
+                "好");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("导入失败", ex.Message, "好");
+        }
+    }
+
+    private async void OnClearReclistClicked(object sender, EventArgs e)
+    {
+        bool ok = await DisplayAlertAsync("清除自定义音素表",
+            "确定要清除吗？", "清除", "取消");
+        if (!ok) return;
+        ReclistProvider.ClearCustomReclist();
+        InitLanguagePicker();
+    }
+
+    /// <summary>
+    /// 解析音素表文本。
+    /// 支持格式：
+    ///   别名=文件名
+    ///   别名,文件名
+    ///   别名  文件名（空格 / tab）
+    ///   # language: ja-JP  （可选，指定 TTS 语言）
+    /// </summary>
+    private static Dictionary<string, string> ParseReclist(
+        string content, out string languageCode)
+    {
+        var result = new Dictionary<string, string>();
+        languageCode = "";
+
+        var lines = content.Replace("\r\n", "\n").Split('\n');
+        foreach (var raw in lines)
+        {
+            var line = raw.Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+
+            // 注释：检查是否指定语言
+            if (line.StartsWith("#") || line.StartsWith("//"))
+            {
+                var lower = line.ToLowerInvariant();
+                int li = lower.IndexOf("language:");
+                if (li >= 0)
+                {
+                    var lang = line.Substring(li + 9).Trim();
+                    if (!string.IsNullOrEmpty(lang)) languageCode = lang;
+                }
+                continue;
+            }
+
+            // 找分隔符
+            int sep = -1;
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+                if (c == '=' || c == ',' || c == '\t' || c == ' ')
+                {
+                    sep = i;
+                    break;
+                }
+            }
+            if (sep <= 0) continue;
+
+            var alias = line.Substring(0, sep).Trim();
+            var fileName = line.Substring(sep + 1).Trim();
+            if (string.IsNullOrEmpty(alias) || string.IsNullOrEmpty(fileName)) continue;
+
+            result[alias] = fileName;
+        }
+
+        return result;
     }
 
     // ===== 自动填写声库名 =====
