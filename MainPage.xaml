@@ -30,12 +30,25 @@
             <!-- ① 语言 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecLangLabel" Style="{StaticResource Md3TitleMedium}" />
-                <Border Style="{StaticResource Md3TextField}">
-                    <Picker x:Name="LanguagePicker"
-                            TitleColor="{DynamicResource Md3OnSurfaceVariant}"
-                            TextColor="{DynamicResource Md3OnSurface}"
-                            FontSize="15" />
+
+                <Border Style="{StaticResource Md3TextField}" Padding="16,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               x:Name="LanguageValueLabel"
+                               FontSize="15"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label Grid.Column="1"
+                               Text="▾"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLanguageTapped" />
+                        </Border.GestureRecognizers>
+                    </Grid>
                 </Border>
+
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="ImportReclistBtn"
@@ -52,19 +65,31 @@
             <!-- ② 引擎 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
-                <Border Style="{StaticResource Md3TextField}">
-                    <Picker x:Name="EnginePicker"
-                            TitleColor="{DynamicResource Md3OnSurfaceVariant}"
-                            TextColor="{DynamicResource Md3OnSurface}"
-                            FontSize="15"
-                            SelectedIndexChanged="OnEngineChanged" />
+
+                <Border Style="{StaticResource Md3TextField}" Padding="16,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               x:Name="EngineValueLabel"
+                               FontSize="15"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label Grid.Column="1"
+                               Text="▾"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnEngineTapped" />
+                        </Border.GestureRecognizers>
+                    </Grid>
                 </Border>
+
                 <Button x:Name="RefreshBtn"
                         Style="{StaticResource Md3TonalButton}"
                         Clicked="OnRefreshClicked" />
             </VerticalStackLayout>
 
-            <!-- ②b 语速 / 音高 -->
+            <!-- 语音调优 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecTuneLabel" Style="{StaticResource Md3TitleMedium}" />
 
@@ -219,7 +244,7 @@
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ZIP 复选框 -->
+            <!-- ZIP -->
             <Border Style="{StaticResource Md3Card}">
                 <HorizontalStackLayout Spacing="12">
                     <CheckBox x:Name="ZipCheckBox"

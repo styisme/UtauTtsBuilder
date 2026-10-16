@@ -7,12 +7,14 @@ namespace UtauTtsBuilder;
 public partial class MainPage : ContentPage
 {
     private List<TtsEngineInfo> _localEngines = new();
-    private List<string> _engineLabels = new();      // 显示名（含本地 + 云端）
-    private List<string> _enginePackages = new();    // 对应的引擎包名（含云端虚包名）
+    private List<string> _engineLabels = new();
+    private List<string> _enginePackages = new();
 
     private string? _iconPath;
     private string? _portraitPath;
     private List<VoicebankLanguage> _languageList = new();
+    private int _selectedLanguageIndex = 0;
+    private int _selectedEngineIndex = 0;
 
     public MainPage()
     {
@@ -27,7 +29,6 @@ public partial class MainPage : ContentPage
         base.OnAppearing();
         ThemeService.Apply();
         ApplyLocalization();
-        // 每次回来都刷新引擎列表（云端配置可能变了）
         LoadEngines();
     }
 
@@ -68,18 +69,11 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrEmpty(_portraitPath)) PortraitLabel.Text = Loc.T("not_selected");
         else PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_portraitPath));
 
-        InitLanguagePicker();
+        InitLanguageList();
     }
 
-    private void InitLanguagePicker()
+    private void InitLanguageList()
     {
-        VoicebankLanguage current = VoicebankLanguage.Japanese;
-        if (_languageList.Count > 0 && LanguagePicker.SelectedIndex >= 0
-            && LanguagePicker.SelectedIndex < _languageList.Count)
-        {
-            current = _languageList[LanguagePicker.SelectedIndex];
-        }
-
         _languageList = new List<VoicebankLanguage>
         {
             VoicebankLanguage.Japanese,
@@ -98,24 +92,92 @@ public partial class MainPage : ContentPage
         }
         else ClearReclistBtn.IsVisible = false;
 
-        LanguagePicker.ItemsSource = _languageList
+        if (_selectedLanguageIndex >= _languageList.Count)
+            _selectedLanguageIndex = 0;
+
+        LanguageValueLabel.Text = ReclistProvider.GetDisplayName(
+            _languageList[_selectedLanguageIndex]);
+    }
+
+    // ===== 自定义选择页封装 =====
+    private async Task<int> ShowSelectionAsync(string title, List<string> items, int current)
+    {
+        var page = new SelectionPage(title, items, current);
+        var task = page.WaitResultAsync();
+        await Navigation.PushAsync(page);
+        return await task;
+    }
+
+    private async Task<string?> ShowActionSheetAsync(string title, List<string> actions)
+    {
+        var page = new ActionSheetPage(title, actions, Loc.T("action_cancel"));
+        var task = page.WaitResultAsync();
+        await Navigation.PushAsync(page);
+        return await task;
+    }
+
+    private async void OnLanguageTapped(object sender, EventArgs e)
+    {
+        var titles = _languageList
             .Select(l => ReclistProvider.GetDisplayName(l))
             .ToList();
 
-        int idx = _languageList.IndexOf(current);
-        LanguagePicker.SelectedIndex = idx >= 0 ? idx : 0;
+        var idx = await ShowSelectionAsync(
+            Loc.T("sec_language"), titles, _selectedLanguageIndex);
+
+        if (idx >= 0)
+        {
+            _selectedLanguageIndex = idx;
+            LanguageValueLabel.Text = titles[idx];
+        }
+    }
+
+    private async void OnEngineTapped(object sender, EventArgs e)
+    {
+        if (_engineLabels.Count == 0)
+        {
+            await DisplayAlertAsync(Loc.T("title_tip"),
+                Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
+            return;
+        }
+
+        var idx = await ShowSelectionAsync(
+            Loc.T("sec_engine"), _engineLabels, _selectedEngineIndex);
+
+        if (idx >= 0)
+        {
+            _selectedEngineIndex = idx;
+            EngineValueLabel.Text = _engineLabels[idx];
+            AutoFillName(_engineLabels[idx]);
+        }
+    }
+
+    private void AutoFillName(string label)
+    {
+        if (!string.IsNullOrWhiteSpace(NameEntry.Text)) return;
+
+        var name = label.TrimStart('★', '☁', ' ').Trim();
+
+        int idx = -1;
+        for (int i = 2; i < name.Length; i++)
+        {
+            if (char.IsDigit(name[i])) { idx = i; break; }
+        }
+        if (idx > 0) name = name.Substring(0, idx);
+
+        name = name.TrimEnd('.', ' ', '-', '(', ')');
+
+        if (!string.IsNullOrWhiteSpace(name))
+            NameEntry.Text = name;
     }
 
     private VoicebankLanguage GetSelectedLanguage()
     {
-        int idx = LanguagePicker.SelectedIndex;
-        if (idx >= 0 && idx < _languageList.Count) return _languageList[idx];
+        if (_selectedLanguageIndex >= 0 && _selectedLanguageIndex < _languageList.Count)
+            return _languageList[_selectedLanguageIndex];
         return VoicebankLanguage.Japanese;
     }
 
-    // ============================================================
-    // 引擎列表：本地 + 云端混合
-    // ============================================================
     private void LoadEngines()
     {
         try
@@ -130,7 +192,6 @@ public partial class MainPage : ContentPage
                 _enginePackages.Add(e.Name);
             }
 
-            // 追加云端引擎
             if (CloudConfigService.AzureConfigured)
             {
                 var voice = CloudConfigService.AzureVoice;
@@ -143,15 +204,18 @@ public partial class MainPage : ContentPage
                 _enginePackages.Add(CloudConfigService.GoogleEnginePackage);
             }
 
-            EnginePicker.ItemsSource = _engineLabels;
+            if (_engineLabels.Count == 0)
+            {
+                EngineValueLabel.Text = "—";
+                StatusLabel.Text = Loc.F("engines_found_fmt", 0);
+                return;
+            }
 
-            // 默认选第一个本地引擎
             var defaultIdx = _localEngines.FindIndex(e => e.IsDefault);
-            if (defaultIdx >= 0) EnginePicker.SelectedIndex = defaultIdx;
-            else if (_engineLabels.Count > 0) EnginePicker.SelectedIndex = 0;
+            _selectedEngineIndex = defaultIdx >= 0 ? defaultIdx : 0;
+            EngineValueLabel.Text = _engineLabels[_selectedEngineIndex];
 
-            var total = _engineLabels.Count;
-            StatusLabel.Text = Loc.F("engines_found_fmt", total);
+            StatusLabel.Text = Loc.F("engines_found_fmt", _engineLabels.Count);
         }
         catch (Exception ex)
         {
@@ -169,19 +233,14 @@ public partial class MainPage : ContentPage
         await Navigation.PushAsync(new SettingsPage());
     }
 
-    // ===== 语速 / 音高 =====
     private void OnSpeedChanged(object sender, ValueChangedEventArgs e) => UpdateSpeedLabel();
     private void OnPitchChanged(object sender, ValueChangedEventArgs e) => UpdatePitchLabel();
 
     private void UpdateSpeedLabel()
-    {
-        SpeedValue.Text = SpeedSlider.Value.ToString("F2") + "×";
-    }
+        => SpeedValue.Text = SpeedSlider.Value.ToString("F2") + "×";
 
     private void UpdatePitchLabel()
-    {
-        PitchValue.Text = PitchSlider.Value.ToString("F2") + "×";
-    }
+        => PitchValue.Text = PitchSlider.Value.ToString("F2") + "×";
 
     private async void OnImportReclistClicked(object sender, EventArgs e)
     {
@@ -209,13 +268,17 @@ public partial class MainPage : ContentPage
             string ttsLang = langFromFile;
             if (string.IsNullOrEmpty(ttsLang))
             {
-                var choice = await DisplayActionSheet(
+                // ★ 用自定义 ActionSheet 替代 DisplayActionSheet
+                var sJa = Loc.T("lang_ja_jp");
+                var sZh = Loc.T("lang_zh_cn");
+                var sEn = Loc.T("lang_en_us");
+                var choice = await ShowActionSheetAsync(
                     Loc.T("title_choose_tts_lang"),
-                    Loc.T("action_cancel"), null,
-                    Loc.T("lang_ja_jp"), Loc.T("lang_zh_cn"), Loc.T("lang_en_us"));
-                if (choice == Loc.T("action_cancel") || string.IsNullOrEmpty(choice)) return;
-                if (choice == Loc.T("lang_zh_cn")) ttsLang = "zh-CN";
-                else if (choice == Loc.T("lang_en_us")) ttsLang = "en-US";
+                    new List<string> { sJa, sZh, sEn });
+
+                if (choice == null) return;
+                if (choice == sZh) ttsLang = "zh-CN";
+                else if (choice == sEn) ttsLang = "en-US";
                 else ttsLang = "ja-JP";
             }
 
@@ -224,7 +287,9 @@ public partial class MainPage : ContentPage
 
             ReclistProvider.SaveCustomReclist(name, ttsLang, reclist);
             ApplyLocalization();
-            LanguagePicker.SelectedIndex = _languageList.Count - 1;
+            _selectedLanguageIndex = _languageList.Count - 1;
+            LanguageValueLabel.Text = ReclistProvider.GetDisplayName(
+                _languageList[_selectedLanguageIndex]);
 
             await DisplayAlertAsync(Loc.T("title_import_success"),
                 Loc.F("msg_import_success_fmt", name, reclist.Count, ttsLang),
@@ -245,6 +310,7 @@ public partial class MainPage : ContentPage
             Loc.T("action_cancel"));
         if (!ok) return;
         ReclistProvider.ClearCustomReclist();
+        _selectedLanguageIndex = 0;
         ApplyLocalization();
     }
 
@@ -281,35 +347,6 @@ public partial class MainPage : ContentPage
             result[alias] = ttsText;
         }
         return result;
-    }
-
-    // ===== 自动填写声库名 =====
-    private void OnEngineChanged(object sender, EventArgs e)
-    {
-        if (EnginePicker.SelectedIndex < 0
-            || EnginePicker.SelectedIndex >= _engineLabels.Count) return;
-        if (!string.IsNullOrWhiteSpace(NameEntry.Text)) return;
-
-        var label = _engineLabels[EnginePicker.SelectedIndex];
-        if (string.IsNullOrWhiteSpace(label)) return;
-
-        // 去掉星号、云图标、版本号
-        var name = label
-            .TrimStart('★', '☁', ' ')
-            .Trim();
-
-        // 遇到数字就截断（去掉版本号）
-        int idx = -1;
-        for (int i = 2; i < name.Length; i++)
-        {
-            if (char.IsDigit(name[i])) { idx = i; break; }
-        }
-        if (idx > 0) name = name.Substring(0, idx);
-
-        name = name.TrimEnd('.', ' ', '-', '(', ')');
-
-        if (!string.IsNullOrWhiteSpace(name))
-            NameEntry.Text = name;
     }
 
     private async void OnPickIconClicked(object sender, EventArgs e)
@@ -407,17 +444,13 @@ public partial class MainPage : ContentPage
         return name.Trim();
     }
 
-    // ============================================================
-    // 生成
-    // ============================================================
     private async void OnBuildClicked(object sender, EventArgs e)
     {
-        int engineIdx = EnginePicker.SelectedIndex;
         var name = NameEntry.Text?.Trim();
         var customPath = OutputDirEntry.Text?.Trim();
         var author = AuthorEntry.Text?.Trim();
 
-        if (engineIdx < 0 || engineIdx >= _enginePackages.Count
+        if (_selectedEngineIndex < 0 || _selectedEngineIndex >= _enginePackages.Count
             || string.IsNullOrEmpty(name))
         {
             await DisplayAlertAsync(Loc.T("title_tip"),
@@ -435,7 +468,7 @@ public partial class MainPage : ContentPage
         }
 
         var language = GetSelectedLanguage();
-        var enginePackage = _enginePackages[engineIdx];
+        var enginePackage = _enginePackages[_selectedEngineIndex];
         float speechRate = (float)SpeedSlider.Value;
         float pitch = (float)PitchSlider.Value;
         bool skipExisting = SkipExistingCheckBox.IsChecked;
@@ -469,7 +502,6 @@ public partial class MainPage : ContentPage
                 }
             }
 
-            // ===== 完成后的操作菜单 =====
             await ShowCompletionMenuAsync(outputDir, name, zipPath);
         }
         catch (Exception ex)
@@ -484,6 +516,7 @@ public partial class MainPage : ContentPage
         }
     }
 
+    // ===== 完成后的操作菜单（自定义 ActionSheet）=====
     private async Task ShowCompletionMenuAsync(string outputDir, string name, string? zipPath)
     {
         var otoPath = Path.Combine(outputDir, "oto.ini");
@@ -506,16 +539,9 @@ public partial class MainPage : ContentPage
             var s = Loc.T("btn_share_zip");
             actions.Add(s); keyMap[s] = "share_zip";
         }
-        var sClose = Loc.T("btn_close");
-        actions.Add(sClose); keyMap[sClose] = "close";
 
-        var choice = await DisplayActionSheet(
-            Loc.T("title_done"),
-            Loc.T("action_cancel"),
-            null,
-            actions.ToArray());
-
-        if (choice == null || choice == Loc.T("action_cancel")) return;
+        var choice = await ShowActionSheetAsync(Loc.T("title_done"), actions);
+        if (choice == null) return;
         if (!keyMap.TryGetValue(choice, out var action)) return;
 
         switch (action)
