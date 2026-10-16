@@ -4,6 +4,7 @@ public partial class AlertPage : ContentPage
 {
     private readonly TaskCompletionSource<bool> _tcs = new();
     private readonly string[] _buttons;
+    private bool _closing;
 
     public AlertPage(string title, string message, params string[] buttons)
     {
@@ -13,10 +14,7 @@ public partial class AlertPage : ContentPage
         MessageLabel.Text = message ?? "";
         _buttons = buttons.Length > 0 ? buttons : new[] { "OK" };
 
-        // 应用主题色
         ApplyTheme();
-
-        // 构建按钮
         BuildButtons();
     }
 
@@ -24,8 +22,6 @@ public partial class AlertPage : ContentPage
 
     private void ApplyTheme()
     {
-        var res = Application.Current!.Resources;
-
         DialogBox.SetDynamicResource(Border.BackgroundColorProperty, "Md3SurfaceContainer");
         TitleLabel.SetDynamicResource(Label.TextColorProperty, "Md3OnSurface");
         MessageLabel.SetDynamicResource(Label.TextColorProperty, "Md3OnSurfaceVariant");
@@ -35,7 +31,6 @@ public partial class AlertPage : ContentPage
     {
         ButtonsRow.Clear();
 
-        // 单按钮 → 主色填充
         if (_buttons.Length == 1)
         {
             var btn = new Button
@@ -54,7 +49,6 @@ public partial class AlertPage : ContentPage
             return;
         }
 
-        // 两个按钮 → 第一个是取消（轮廓），第二个是确定（填充）
         for (int i = 0; i < _buttons.Length; i++)
         {
             bool isLast = i == _buttons.Length - 1;
@@ -81,7 +75,7 @@ public partial class AlertPage : ContentPage
                 btn.SetDynamicResource(Button.BorderColorProperty, "Md3Outline");
             }
 
-            bool result = isLast;  // 最后一个按钮返回 true
+            bool result = isLast;
             btn.Clicked += async (s, e) => await CloseAsync(result);
             ButtonsRow.Add(btn);
         }
@@ -89,15 +83,24 @@ public partial class AlertPage : ContentPage
 
     private async Task CloseAsync(bool result)
     {
-        _tcs.TrySetResult(result);
+        if (_closing) return;
+        _closing = true;
+
         await Navigation.PopModalAsync();
+        _tcs.TrySetResult(result);
     }
 
     protected override bool OnBackButtonPressed()
     {
-        // 单按钮时返回 true，双按钮时返回 false（视为取消）
-        _tcs.TrySetResult(_buttons.Length == 1);
-        Dispatcher.Dispatch(async () => await Navigation.PopModalAsync());
+        if (!_closing)
+        {
+            _closing = true;
+            Dispatcher.Dispatch(async () =>
+            {
+                await Navigation.PopModalAsync();
+                _tcs.TrySetResult(_buttons.Length == 1);
+            });
+        }
         return true;
     }
 }

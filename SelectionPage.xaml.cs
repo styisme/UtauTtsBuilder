@@ -5,6 +5,7 @@ public partial class SelectionPage : ContentPage
     private readonly TaskCompletionSource<int> _tcs = new();
     private readonly List<string> _items;
     private readonly int _currentIndex;
+    private bool _closing;
 
     public SelectionPage(string title, List<string> items, int currentIndex)
     {
@@ -75,28 +76,38 @@ public partial class SelectionPage : ContentPage
             }
 
             var tap = new TapGestureRecognizer();
-            tap.Tapped += (s, e) => OnItemSelected(index);
+            tap.Tapped += async (s, e) => await CloseAsync(index);
             border.GestureRecognizers.Add(tap);
 
             ItemsContainer.Add(border);
         }
     }
 
-    private async void OnItemSelected(int index)
+    private async Task CloseAsync(int result)
     {
-        _tcs.TrySetResult(index);
+        if (_closing) return;
+        _closing = true;
+
         await Navigation.PopAsync();
+        _tcs.TrySetResult(result);
     }
 
     private async void OnBackClicked(object sender, EventArgs e)
     {
-        _tcs.TrySetResult(-1);
-        await Navigation.PopAsync();
+        await CloseAsync(-1);
     }
 
     protected override bool OnBackButtonPressed()
     {
-        _tcs.TrySetResult(-1);
-        return base.OnBackButtonPressed();
+        if (!_closing)
+        {
+            _closing = true;
+            Dispatcher.Dispatch(async () =>
+            {
+                await Navigation.PopAsync();
+                _tcs.TrySetResult(-1);
+            });
+        }
+        return true;
     }
 }
