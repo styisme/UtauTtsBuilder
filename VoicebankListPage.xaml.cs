@@ -9,6 +9,13 @@ public partial class VoicebankListPage : ContentPage
         Logger.Info("VoicebankListPage", "Constructing");
         InitializeComponent();
         ApplyLocalization();
+        Logger.Info("VoicebankListPage", "Constructed OK");
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Logger.Info("VoicebankListPage", "Appearing");
         Reload();
     }
 
@@ -22,16 +29,32 @@ public partial class VoicebankListPage : ContentPage
     {
         ItemsContainer.Clear();
         var items = VoicebankScanner.ScanAll();
+        Logger.Info("VoicebankListPage", $"Scanned {items.Count} voicebanks");
 
         if (items.Count == 0)
         {
-            var empty = new Label
+            var empty = new VerticalStackLayout
             {
-                Text = Loc.T("list_empty"),
-                FontSize = 14,
-                TextColor = (Color)Application.Current!.Resources["Md3OnSurfaceVariant"],
-                HorizontalOptions = LayoutOptions.Center,
-                Margin = new Thickness(0, 40, 0, 0)
+                Spacing = 8,
+                Margin = new Thickness(16, 40, 16, 0),
+                Children =
+                {
+                    new Label
+                    {
+                        Text = Loc.T("list_empty"),
+                        FontSize = 16,
+                        FontAttributes = FontAttributes.Bold,
+                        HorizontalOptions = LayoutOptions.Center,
+                        TextColor = (Color)Application.Current!.Resources["Md3OnSurface"]
+                    },
+                    new Label
+                    {
+                        Text = Loc.T("list_empty_hint"),
+                        FontSize = 13,
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        TextColor = (Color)Application.Current!.Resources["Md3OnSurfaceVariant"]
+                    }
+                }
             };
             ItemsContainer.Add(empty);
             return;
@@ -88,6 +111,8 @@ public partial class VoicebankListPage : ContentPage
 
     private async Task ShowActionsAsync(VoicebankInfo vb)
     {
+        Logger.Info("VoicebankListPage", "Show actions for " + vb.Name);
+
         var actions = new List<string>();
         var keys = new Dictionary<string, string>();
 
@@ -113,32 +138,25 @@ public partial class VoicebankListPage : ContentPage
 
         if (choice == null) return;
         if (!keys.TryGetValue(choice, out var action)) return;
+        Logger.Info("VoicebankListPage", "Action: " + action);
 
-        switch (action)
+        try
         {
-            case "view_preview":
-                await Navigation.PushAsync(new PreviewImagePage(vb.DirectoryPath, vb.Name));
-                break;
+            switch (action)
+            {
+                case "view_preview":
+                    await Navigation.PushAsync(new PreviewImagePage(vb.DirectoryPath, vb.Name));
+                    break;
 
-            case "share_zip":
-                try
-                {
+                case "share_zip":
                     await Share.Default.RequestAsync(new ShareFileRequest
                     {
                         Title = Loc.T("share_zip_title"),
                         File = new ShareFile(vb.ZipPath!)
                     });
-                }
-                catch (Exception ex)
-                {
-                    await DialogService.ShowAlertAsync(this,
-                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
-                }
-                break;
+                    break;
 
-            case "edit_oto":
-                try
-                {
+                case "edit_oto":
                     var oto = Path.Combine(vb.DirectoryPath, "oto.ini");
                     if (!File.Exists(oto))
                     {
@@ -151,51 +169,36 @@ public partial class VoicebankListPage : ContentPage
                         Title = Loc.T("action_edit_oto"),
                         File = new ShareFile(oto)
                     });
-                }
-                catch (Exception ex)
-                {
-                    await DialogService.ShowAlertAsync(this,
-                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
-                }
-                break;
+                    break;
 
-            case "gen_ust":
-                try
-                {
+                case "gen_ust":
                     var ustPath = await UstTemplateGenerator.GenerateAsync(
                         vb.DirectoryPath, vb.Name);
                     await DialogService.ShowAlertAsync(this,
                         Loc.T("title_done"),
                         Loc.F("ust_generated_fmt", ustPath), Loc.T("btn_ok"));
-                }
-                catch (Exception ex)
-                {
-                    await DialogService.ShowAlertAsync(this,
-                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
-                }
-                break;
+                    break;
 
-            case "delete":
-                bool ok = await DialogService.ShowConfirmAsync(this,
-                    Loc.T("list_delete"),
-                    Loc.F("list_delete_confirm_fmt", vb.Name),
-                    Loc.T("btn_delete_yes"),
-                    Loc.T("action_cancel"));
-                if (!ok) return;
+                case "delete":
+                    bool ok = await DialogService.ShowConfirmAsync(this,
+                        Loc.T("list_delete"),
+                        Loc.F("list_delete_confirm_fmt", vb.Name),
+                        Loc.T("btn_delete_yes"),
+                        Loc.T("action_cancel"));
+                    if (!ok) return;
 
-                try
-                {
                     Directory.Delete(vb.DirectoryPath, true);
                     if (vb.ZipPath != null && File.Exists(vb.ZipPath))
                         File.Delete(vb.ZipPath);
                     Reload();
-                }
-                catch (Exception ex)
-                {
-                    await DialogService.ShowAlertAsync(this,
-                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
-                }
-                break;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("VoicebankListPage", ex);
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
     }
 

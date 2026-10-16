@@ -9,6 +9,8 @@ public static class Logger
     private static string? _currentFile;
     private static bool _initialized;
 
+    public static event Action? LogChanged;
+
     public static void Init()
     {
         if (_initialized) return;
@@ -62,6 +64,7 @@ public static class Logger
                 var line = $"[{DateTime.Now:HH:mm:ss.fff}] [{level}] [{tag}] {msg}{Environment.NewLine}";
                 File.AppendAllText(_currentFile, line, Encoding.UTF8);
             }
+            LogChanged?.Invoke();
         }
         catch { }
     }
@@ -69,6 +72,17 @@ public static class Logger
     public static string GetCurrentFilePath() => _currentFile ?? "";
 
     public static string GetLogDir() => _logDir ?? "";
+
+    public static int GetLineCount()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_currentFile) || !File.Exists(_currentFile))
+                return 0;
+            return File.ReadAllLines(_currentFile).Length;
+        }
+        catch { return 0; }
+    }
 
     public static string ReadRecent(int maxLines = 800)
     {

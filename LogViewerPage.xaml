@@ -5,7 +5,7 @@
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{DynamicResource Md3Surface}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <Grid Grid.Row="0"
               ColumnDefinitions="Auto,*"
@@ -26,14 +26,19 @@
                    Margin="4,0,0,0" />
         </Grid>
 
-        <Border Grid.Row="1"
+        <Label Grid.Row="1"
+               x:Name="InfoLabel"
+               FontSize="11"
+               Margin="16,0,16,8"
+               TextColor="{DynamicResource Md3OnSurfaceVariant}"
+               LineBreakMode="WordWrap" />
+
+        <Border Grid.Row="2"
                 Margin="12,0,12,0"
                 Padding="0"
                 StrokeThickness="0"
-                StrokeShape="RoundRectangle 12">
-            <Border.BackgroundColor>
-                <StaticResource Key="Md3SurfaceContainer" />
-            </Border.BackgroundColor>
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="{DynamicResource Md3SurfaceContainer}">
             <ScrollView x:Name="LogScroll" Padding="12">
                 <Label x:Name="LogLabel"
                        FontFamily="Monospace"
@@ -44,7 +49,7 @@
             </ScrollView>
         </Border>
 
-        <VerticalStackLayout Grid.Row="2" Padding="12,12,12,24" Spacing="8">
+        <VerticalStackLayout Grid.Row="3" Padding="12,12,12,24" Spacing="8">
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                 <Button Grid.Column="0"
                         x:Name="RefreshBtn"

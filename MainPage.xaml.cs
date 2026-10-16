@@ -282,12 +282,13 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        var tmp = Path.Combine(FileSystem.CacheDirectory, "compare_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(tmp);
+        // 只合成单个音节做对比
+        var engines = new List<(string Package, string Label)>();
+        for (int i = 0; i < _enginePackages.Count; i++)
+            engines.Add((_enginePackages[i], _engineLabels[i]));
 
-        var actions = new List<string>();
-        var paths = new List<string>();
         var language = GetSelectedLanguage();
+        var langCode = ReclistProvider.GetLanguageCode(language);
         float speechRate = (float)SpeedSlider.Value;
         float pitch = (float)PitchSlider.Value;
 
@@ -296,47 +297,38 @@ public partial class MainPage : ContentPage
 
         try
         {
-            for (int i = 0; i < _enginePackages.Count; i++)
-            {
-                StatusLabel.Text = $"[{i + 1}/{_enginePackages.Count}] "
-                    + _engineLabels[i];
+            var progress = new Progress<string>(m => StatusLabel.Text = m);
+            var results = await QuickCompareService.RunAsync(
+                engines, "あ", langCode, speechRate, pitch, progress);
 
-                var tmpDir = Path.Combine(tmp, "e" + i);
-                Directory.CreateDirectory(tmpDir);
-
-                try
-                {
-                    var b = new VoicebankBuilder(
-                        _enginePackages[i],
-                        new Progress<string>(_ => { }),
-                        VoicebankLanguage.Japanese, null, null, null,
-                        speechRate, pitch, false);
-                    await b.BuildAsync(tmpDir, "cmp");
-
-                    var f = Directory.GetFiles(tmpDir, "*.wav").FirstOrDefault();
-                    if (f != null)
-                    {
-                        actions.Add(_engineLabels[i]);
-                        paths.Add(f);
-                    }
-                }
-                catch { }
-            }
-
-            if (actions.Count == 0)
+            var ok = results.Where(r => r.WavPath != null).ToList();
+            if (ok.Count == 0)
             {
                 await DialogService.ShowAlertAsync(this,
-                    Loc.T("compare_title"), "No audio generated", Loc.T("btn_ok"));
+                    Loc.T("compare_title"),
+                    "All engines failed:
+" + string.Join("
+",
+                        results.Select(r => $"{r.EngineLabel}: {r.Error}")),
+                    Loc.T("btn_ok"));
                 return;
             }
 
-            var choice = await ShowActionSheetAsync(Loc.T("compare_result_title"), actions);
+            var actions = ok.Select(r => r.EngineLabel).ToList();
+            var choice = await ShowActionSheetAsync(
+                Loc.T("compare_result_title"), actions);
             if (choice == null) return;
+
             var idx = actions.IndexOf(choice);
-            if (idx >= 0)
-            {
-                await AudioPreviewer.PlayAsync(paths[idx], choice);
-            }
+            if (idx < 0) return;
+
+            await AudioPreviewer.PlayAsync(ok[idx].WavPath!, choice);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("MainPage", ex);
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
         finally
         {
