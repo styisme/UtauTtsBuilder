@@ -1,3 +1,6 @@
+**🌐 语言 / Language / 言語：** 中文 | [English](CONTRIBUTING.en.md)
+
+---
 # 贡献指南
 
 感谢参与 **UtauTtsBuilder** 的开发！本项目采用轻量但明确的源代码管理规范：
