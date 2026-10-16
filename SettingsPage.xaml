@@ -2,48 +2,47 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="UtauTtsBuilder.SettingsPage"
-             Title="设置"
              BackgroundColor="{DynamicResource Md3Surface}">
 
     <ScrollView>
         <VerticalStackLayout Padding="16,20,16,40" Spacing="20">
 
-            <!-- ===== 外观模式 ===== -->
-            <Label Text="外观" Style="{StaticResource Md3TitleMedium}" />
-
+            <Label x:Name="AppearanceLabel" Style="{StaticResource Md3TitleMedium}" />
             <VerticalStackLayout Spacing="8">
                 <Button x:Name="ThemeAutoBtn"
-                        Text="跟随系统"
-                        HeightRequest="52"
-                        CornerRadius="26"
-                        FontSize="15"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
                         Clicked="OnThemeModeButtonClicked" />
                 <Button x:Name="ThemeLightBtn"
-                        Text="浅色"
-                        HeightRequest="52"
-                        CornerRadius="26"
-                        FontSize="15"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
                         Clicked="OnThemeModeButtonClicked" />
                 <Button x:Name="ThemeDarkBtn"
-                        Text="深色"
-                        HeightRequest="52"
-                        CornerRadius="26"
-                        FontSize="15"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
                         Clicked="OnThemeModeButtonClicked" />
             </VerticalStackLayout>
 
-            <!-- ===== 动态取色 ===== -->
-            <Label Text="动态取色" Style="{StaticResource Md3TitleMedium}" />
+            <Label x:Name="LanguageSectionLabel" Style="{StaticResource Md3TitleMedium}" />
+            <VerticalStackLayout Spacing="8">
+                <Button x:Name="LangAutoBtn"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
+                        Clicked="OnLanguageButtonClicked" />
+                <Button x:Name="LangZhBtn"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
+                        Clicked="OnLanguageButtonClicked" />
+                <Button x:Name="LangEnBtn"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
+                        Clicked="OnLanguageButtonClicked" />
+                <Button x:Name="LangJaBtn"
+                        HeightRequest="52" CornerRadius="26" FontSize="15"
+                        Clicked="OnLanguageButtonClicked" />
+            </VerticalStackLayout>
 
+            <Label x:Name="DynamicLabel" Style="{StaticResource Md3TitleMedium}" />
             <Border Style="{StaticResource Md3Card}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <VerticalStackLayout Grid.Column="0" Spacing="2"
-                                         VerticalOptions="Center">
-                        <Label Text="使用壁纸颜色"
-                               FontSize="14"
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                        <Label x:Name="DynamicTitle" FontSize="14"
                                TextColor="{DynamicResource Md3OnSurface}" />
-                        <Label Text="仅 Android 12+ 有效"
-                               FontSize="12"
+                        <Label x:Name="DynamicHint" FontSize="12"
                                TextColor="{DynamicResource Md3OnSurfaceVariant}" />
                     </VerticalStackLayout>
                     <Switch Grid.Column="1"
@@ -54,8 +53,7 @@
                 </Grid>
             </Border>
 
-            <!-- ===== 底部说明 ===== -->
-            <Label Text="关闭动态取色后，应用会使用 MD3 基线紫作为主题色。"
+            <Label x:Name="DynamicFooter"
                    FontSize="12"
                    TextColor="{DynamicResource Md3OnSurfaceVariant}"
                    Margin="4,8,0,0" />

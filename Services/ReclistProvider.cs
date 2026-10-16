@@ -28,7 +28,7 @@ public static class ReclistProvider
         !string.IsNullOrWhiteSpace(Preferences.Default.Get(KeyCustomReclist, ""));
 
     public static string CustomReclistName =>
-        Preferences.Default.Get(KeyCustomName, "自定义");
+        Preferences.Default.Get(KeyCustomName, Loc.T("custom_default_name"));
 
     public static void SaveCustomReclist(
         string name, string languageCode, Dictionary<string, string> reclist)
@@ -121,42 +121,33 @@ public static class ReclistProvider
 
     public static string GetDisplayName(VoicebankLanguage lang) => lang switch
     {
-        VoicebankLanguage.Japanese => "日语 CV (69 音节)",
-        VoicebankLanguage.JapaneseCvvc => "日语 CVVC (133 音节)",
-        VoicebankLanguage.JapaneseVcv => "日语 VCV (105 音节)",
-        VoicebankLanguage.Chinese => "中文 CV (78 音节)",
-        VoicebankLanguage.English => "英语 CV (93 音节)",
-        VoicebankLanguage.Custom => "自定义: " + CustomReclistName,
-        _ => "日语 CV"
+        VoicebankLanguage.Japanese => Loc.T("reclist_ja_cv"),
+        VoicebankLanguage.JapaneseCvvc => Loc.T("reclist_ja_cvvc"),
+        VoicebankLanguage.JapaneseVcv => Loc.T("reclist_ja_vcv"),
+        VoicebankLanguage.Chinese => Loc.T("reclist_zh_cv"),
+        VoicebankLanguage.English => Loc.T("reclist_en_cv"),
+        VoicebankLanguage.Custom => Loc.F("reclist_custom_fmt", CustomReclistName),
+        _ => Loc.T("reclist_ja_cv")
     };
 
     // ============================================================
-    // 日语 CVVC
+    // CVVC / VCV
     // ============================================================
     private static List<ReclistEntry> BuildJapaneseCvvc()
     {
         var list = new List<ReclistEntry>();
-
-        // CV 部分
         foreach (var kv in JapaneseCvReclist.CvList)
         {
             list.Add(new ReclistEntry
             {
-                Alias = kv.Key,
-                TtsText = kv.Key,
-                FileName = kv.Value,
-                IsTransition = false
+                Alias = kv.Key, TtsText = kv.Key, FileName = kv.Value, IsTransition = false
             });
         }
-
         var vowels = new (string Roma, string Kana)[]
         {
             ("a", "あ"), ("i", "い"), ("u", "う"), ("e", "え"), ("o", "お")
         };
-
-        // VV 过渡
         foreach (var v1 in vowels)
-        {
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
@@ -168,18 +159,13 @@ public static class ReclistProvider
                     IsTransition = true
                 });
             }
-        }
-
-        // VC 过渡
-        var consonants = new (string Roma, string Kana)[]
+        var cons = new (string Roma, string Kana)[]
         {
             ("k", "か"), ("s", "さ"), ("t", "た"), ("n", "な"),
             ("h", "は"), ("m", "ま"), ("y", "や"), ("w", "わ"), ("r", "ら")
         };
-
         foreach (var v in vowels)
-        {
-            foreach (var c in consonants)
+            foreach (var c in cons)
             {
                 list.Add(new ReclistEntry
                 {
@@ -189,58 +175,32 @@ public static class ReclistProvider
                     IsTransition = true
                 });
             }
-        }
-
         return list;
     }
 
-    // ============================================================
-    // 日语 VCV（元音间连续音）
-    // ============================================================
     private static List<ReclistEntry> BuildJapaneseVcv()
     {
         var list = new List<ReclistEntry>();
-
         var vowels = new (string Roma, string Kana)[]
         {
             ("a", "あ"), ("i", "い"), ("u", "う"), ("e", "え"), ("o", "お")
         };
-
-        // 1. 单独元音（CV 风格别名，无过渡）
         foreach (var v in vowels)
-        {
             list.Add(new ReclistEntry
             {
-                Alias = v.Roma,
-                TtsText = v.Kana,
-                FileName = v.Roma,
-                IsTransition = false
+                Alias = v.Roma, TtsText = v.Kana, FileName = v.Roma, IsTransition = false
             });
-        }
-
-        // 2. ん：n + [元音] n
         list.Add(new ReclistEntry
         {
-            Alias = "n",
-            TtsText = "ん",
-            FileName = "n",
-            IsTransition = false
+            Alias = "n", TtsText = "ん", FileName = "n", IsTransition = false
         });
-
         foreach (var v in vowels)
-        {
             list.Add(new ReclistEntry
             {
-                Alias = v.Roma + " n",
-                TtsText = v.Kana + "ん",
-                FileName = v.Roma + "_n",
-                IsTransition = true
+                Alias = v.Roma + " n", TtsText = v.Kana + "ん",
+                FileName = v.Roma + "_n", IsTransition = true
             });
-        }
-
-        // 3. 元音到元音过渡（跳过 a a、i i 等重复）
         foreach (var v1 in vowels)
-        {
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
@@ -252,26 +212,15 @@ public static class ReclistProvider
                     IsTransition = true
                 });
             }
-        }
-
-        // 4. 辅音行过渡：14 行 × 5 前元音 = 70
-        var consonantRows = new (string Roma, string Kana)[]
+        var rows = new (string Roma, string Kana)[]
         {
-            ("k", "か"), ("g", "が"),
-            ("s", "さ"), ("z", "ざ"),
-            ("t", "た"), ("d", "だ"),
-            ("n", "な"),
+            ("k", "か"), ("g", "が"), ("s", "さ"), ("z", "ざ"),
+            ("t", "た"), ("d", "だ"), ("n", "な"),
             ("h", "は"), ("b", "ば"), ("p", "ぱ"),
-            ("m", "ま"),
-            ("y", "や"),
-            ("r", "ら"),
-            ("w", "わ"),
+            ("m", "ま"), ("y", "や"), ("r", "ら"), ("w", "わ")
         };
-
-        foreach (var c in consonantRows)
-        {
+        foreach (var c in rows)
             foreach (var v in vowels)
-            {
                 list.Add(new ReclistEntry
                 {
                     Alias = v.Roma + " " + c.Roma + "a",
@@ -279,9 +228,6 @@ public static class ReclistProvider
                     FileName = v.Roma + "_" + c.Roma + "a",
                     IsTransition = true
                 });
-            }
-        }
-
         return list;
     }
 

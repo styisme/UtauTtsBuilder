@@ -8,22 +8,18 @@
     <ScrollView>
         <VerticalStackLayout Padding="16,24,16,48" Spacing="24">
 
-            <!-- ===== 标题 + 设置按钮 ===== -->
             <Grid ColumnDefinitions="*,Auto" Margin="4,8,0,0">
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
-                    <Label Text="UTAU 声库生成器" Style="{StaticResource Md3Headline}" />
-                    <Label Text="从系统 TTS 引擎一键生成"
+                    <Label x:Name="TitleLabel" Style="{StaticResource Md3Headline}" />
+                    <Label x:Name="SubtitleLabel"
                            Style="{StaticResource Md3BodySmall}"
                            Margin="4,0,0,0" />
                 </VerticalStackLayout>
-
                 <Button Grid.Column="1"
                         x:Name="SettingsBtn"
                         Text="⚙"
                         FontSize="22"
-                        WidthRequest="48"
-                        HeightRequest="48"
-                        CornerRadius="24"
+                        WidthRequest="48" HeightRequest="48" CornerRadius="24"
                         Padding="0"
                         BackgroundColor="Transparent"
                         TextColor="{DynamicResource Md3OnSurfaceVariant}"
@@ -31,12 +27,10 @@
                         Clicked="OnSettingsClicked" />
             </Grid>
 
-            <!-- ===== ① 声库语言 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="① 声库语言" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="SecLangLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Picker x:Name="LanguagePicker"
-                            Title="选择语言"
                             TitleColor="{DynamicResource Md3OnSurfaceVariant}"
                             TextColor="{DynamicResource Md3OnSurface}"
                             FontSize="15" />
@@ -44,152 +38,128 @@
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="ImportReclistBtn"
-                            Text="导入自定义音素表"
                             Style="{StaticResource Md3TonalButton}"
                             Clicked="OnImportReclistClicked" />
                     <Button Grid.Column="1"
                             x:Name="ClearReclistBtn"
-                            Text="清除"
                             Style="{StaticResource Md3OutlinedButton}"
                             IsVisible="False"
                             Clicked="OnClearReclistClicked" />
                 </Grid>
             </VerticalStackLayout>
 
-            <!-- ===== ② TTS 引擎 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="② TTS 引擎" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="SecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Picker x:Name="EnginePicker"
-                            Title="请选择引擎"
                             TitleColor="{DynamicResource Md3OnSurfaceVariant}"
                             TextColor="{DynamicResource Md3OnSurface}"
                             FontSize="15"
                             SelectedIndexChanged="OnEngineChanged" />
                 </Border>
                 <Button x:Name="RefreshBtn"
-                        Text="刷新引擎列表"
                         Style="{StaticResource Md3TonalButton}"
                         Clicked="OnRefreshClicked" />
             </VerticalStackLayout>
 
-            <!-- ===== ③ 声库名称 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="③ 声库名称" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="SecNameLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="NameEntry"
-                           Placeholder="例如: 小艺"
                            PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
                            TextColor="{DynamicResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ===== ④ 图标 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="④ 图标（可选）" Style="{StaticResource Md3TitleMedium}" />
-                <Label Text="建议 100×100 的 PNG / BMP / JPG"
+                <Label x:Name="SecIconLabel" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="HintIconLabel"
                        Style="{StaticResource Md3BodySmall}"
                        Margin="4,-4,0,0" />
                 <Label x:Name="IconLabel"
-                       Text="未选择"
                        FontSize="13"
                        TextColor="{DynamicResource Md3OnSurfaceVariant}"
                        Margin="4,0,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickIconBtn"
-                            Text="选择图标"
                             Style="{StaticResource Md3TonalButton}"
                             Clicked="OnPickIconClicked" />
                     <Button Grid.Column="1"
                             x:Name="ClearIconBtn"
-                            Text="清除"
                             Style="{StaticResource Md3OutlinedButton}"
                             Clicked="OnClearIconClicked" />
                 </Grid>
             </VerticalStackLayout>
 
-            <!-- ===== ⑤ 立绘 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="⑤ 立绘（可选）" Style="{StaticResource Md3TitleMedium}" />
-                <Label Text="仅 OpenUtau 会显示立绘"
+                <Label x:Name="SecPortraitLabel" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="HintPortraitLabel"
                        Style="{StaticResource Md3BodySmall}"
                        Margin="4,-4,0,0" />
                 <Label x:Name="PortraitLabel"
-                       Text="未选择"
                        FontSize="13"
                        TextColor="{DynamicResource Md3OnSurfaceVariant}"
                        Margin="4,0,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickPortraitBtn"
-                            Text="选择立绘"
                             Style="{StaticResource Md3TonalButton}"
                             Clicked="OnPickPortraitClicked" />
                     <Button Grid.Column="1"
                             x:Name="ClearPortraitBtn"
-                            Text="清除"
                             Style="{StaticResource Md3OutlinedButton}"
                             Clicked="OnClearPortraitClicked" />
                 </Grid>
             </VerticalStackLayout>
 
-            <!-- ===== ⑥ 作者 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="⑥ 作者（可选）" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="SecAuthorLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="AuthorEntry"
-                           Placeholder="默认: Auto-generated"
                            PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
                            TextColor="{DynamicResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ===== ⑦ 输出路径 ===== -->
             <VerticalStackLayout Spacing="10">
-                <Label Text="⑦ 输出路径（可选）" Style="{StaticResource Md3TitleMedium}" />
-                <Label Text="留空 = 内部存储/Download/UtauTtsBuilder/"
+                <Label x:Name="SecOutputLabel" Style="{StaticResource Md3TitleMedium}" />
+                <Label x:Name="HintOutputLabel"
                        Style="{StaticResource Md3BodySmall}"
                        Margin="4,-4,0,0" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="OutputDirEntry"
-                           Placeholder="例如: Music/Utau"
                            PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
                            TextColor="{DynamicResource Md3OnSurface}"
                            FontSize="15" />
                 </Border>
             </VerticalStackLayout>
 
-            <!-- ===== ZIP ===== -->
             <Border Style="{StaticResource Md3Card}">
                 <HorizontalStackLayout Spacing="12">
                     <CheckBox x:Name="ZipCheckBox"
                               IsChecked="True"
                               Color="{DynamicResource Md3Primary}" />
-                    <Label Text="生成后自动压缩为 ZIP"
+                    <Label x:Name="ZipLabel"
                            FontSize="14"
                            TextColor="{DynamicResource Md3OnSurface}"
                            VerticalOptions="Center" />
                 </HorizontalStackLayout>
             </Border>
 
-            <!-- ===== 主按钮 ===== -->
             <Button x:Name="BuildButton"
-                    Text="开始生成声库"
                     Style="{StaticResource Md3FilledButton}"
                     Margin="0,8,0,0"
                     Clicked="OnBuildClicked" />
 
-            <!-- ===== 进度条 ===== -->
             <ProgressBar x:Name="ProgressBar"
                          IsVisible="False"
                          ProgressColor="{DynamicResource Md3Primary}"
                          BackgroundColor="{DynamicResource Md3SurfaceVariant}"
                          HeightRequest="4" />
 
-            <!-- ===== 状态 ===== -->
             <Label x:Name="StatusLabel"
                    FontSize="12"
                    TextColor="{DynamicResource Md3OnSurfaceVariant}"

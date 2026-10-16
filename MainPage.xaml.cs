@@ -14,18 +14,65 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
-        InitLanguagePicker();
+        ApplyLocalization();
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         ThemeService.Apply();
+        ApplyLocalization();
         if (_engines.Count == 0) LoadEngines();
+    }
+
+    private void ApplyLocalization()
+    {
+        TitleLabel.Text = Loc.T("app_title");
+        SubtitleLabel.Text = Loc.T("app_subtitle");
+        SecLangLabel.Text = Loc.T("sec_language");
+        ImportReclistBtn.Text = Loc.T("btn_import_reclist");
+        ClearReclistBtn.Text = Loc.T("btn_clear");
+        SecEngineLabel.Text = Loc.T("sec_engine");
+        RefreshBtn.Text = Loc.T("btn_refresh_engines");
+        SecNameLabel.Text = Loc.T("sec_name");
+        NameEntry.Placeholder = Loc.T("ph_name");
+        SecIconLabel.Text = Loc.T("sec_icon");
+        HintIconLabel.Text = Loc.T("hint_icon");
+        PickIconBtn.Text = Loc.T("btn_pick_icon");
+        ClearIconBtn.Text = Loc.T("btn_clear");
+        SecPortraitLabel.Text = Loc.T("sec_portrait");
+        HintPortraitLabel.Text = Loc.T("hint_portrait");
+        PickPortraitBtn.Text = Loc.T("btn_pick_portrait");
+        ClearPortraitBtn.Text = Loc.T("btn_clear");
+        SecAuthorLabel.Text = Loc.T("sec_author");
+        AuthorEntry.Placeholder = Loc.T("ph_author");
+        SecOutputLabel.Text = Loc.T("sec_output");
+        HintOutputLabel.Text = Loc.T("hint_output");
+        OutputDirEntry.Placeholder = Loc.T("ph_output");
+        ZipLabel.Text = Loc.T("zip_checkbox");
+        BuildButton.Text = Loc.T("btn_build");
+
+        if (string.IsNullOrEmpty(_iconPath)) IconLabel.Text = Loc.T("not_selected");
+        else IconLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_iconPath));
+
+        if (string.IsNullOrEmpty(_portraitPath)) PortraitLabel.Text = Loc.T("not_selected");
+        else PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_portraitPath));
+
+        if (_engines.Count > 0)
+            StatusLabel.Text = Loc.F("engines_found_fmt", _engines.Count);
+
+        InitLanguagePicker();
     }
 
     private void InitLanguagePicker()
     {
+        VoicebankLanguage current = VoicebankLanguage.Japanese;
+        if (_languageList.Count > 0 && LanguagePicker.SelectedIndex >= 0
+            && LanguagePicker.SelectedIndex < _languageList.Count)
+        {
+            current = _languageList[LanguagePicker.SelectedIndex];
+        }
+
         _languageList = new List<VoicebankLanguage>
         {
             VoicebankLanguage.Japanese,
@@ -40,22 +87,20 @@ public partial class MainPage : ContentPage
             _languageList.Add(VoicebankLanguage.Custom);
             ClearReclistBtn.IsVisible = true;
         }
-        else
-        {
-            ClearReclistBtn.IsVisible = false;
-        }
+        else ClearReclistBtn.IsVisible = false;
 
         LanguagePicker.ItemsSource = _languageList
             .Select(l => ReclistProvider.GetDisplayName(l))
             .ToList();
-        LanguagePicker.SelectedIndex = 0;
+
+        int idx = _languageList.IndexOf(current);
+        LanguagePicker.SelectedIndex = idx >= 0 ? idx : 0;
     }
 
     private VoicebankLanguage GetSelectedLanguage()
     {
         int idx = LanguagePicker.SelectedIndex;
-        if (idx >= 0 && idx < _languageList.Count)
-            return _languageList[idx];
+        if (idx >= 0 && idx < _languageList.Count) return _languageList[idx];
         return VoicebankLanguage.Japanese;
     }
 
@@ -69,11 +114,11 @@ public partial class MainPage : ContentPage
                 .ToList();
             var defaultIdx = _engines.FindIndex(e => e.IsDefault);
             if (defaultIdx >= 0) EnginePicker.SelectedIndex = defaultIdx;
-            StatusLabel.Text = "已发现 " + _engines.Count + " 个 TTS 引擎";
+            StatusLabel.Text = Loc.F("engines_found_fmt", _engines.Count);
         }
         catch (Exception ex)
         {
-            StatusLabel.Text = "加载 TTS 引擎失败: " + ex.Message;
+            StatusLabel.Text = Loc.F("engines_load_failed_fmt", ex.Message);
         }
     }
 
@@ -94,29 +139,20 @@ public partial class MainPage : ContentPage
         {
             var result = await FilePicker.Default.PickAsync(new PickOptions
             {
-                PickerTitle = "选择音素表文件"
+                PickerTitle = Loc.T("btn_import_reclist")
             });
             if (result == null) return;
 
             string content;
             using (var stream = await result.OpenReadAsync())
             using (var reader = new StreamReader(stream))
-            {
                 content = await reader.ReadToEndAsync();
-            }
 
             var reclist = ParseReclist(content, out var langFromFile);
             if (reclist.Count == 0)
             {
-                await DisplayAlertAsync("解析失败",
-                    "音素表里没有解析到任何音节。\n\n" +
-                    "格式要求（每行一条）：\n" +
-                    "  别名=文件名\n" +
-                    "  别名,文件名\n" +
-                    "  别名 文件名\n\n" +
-                    "以 # 开头的行为注释，可选指定 TTS 语言：\n" +
-                    "  # language: ja-JP",
-                    "好");
+                await DisplayAlertAsync(Loc.T("title_parse_failed"),
+                    Loc.T("msg_parse_failed"), Loc.T("btn_ok"));
                 return;
             }
 
@@ -124,52 +160,53 @@ public partial class MainPage : ContentPage
             if (string.IsNullOrEmpty(ttsLang))
             {
                 var choice = await DisplayActionSheet(
-                    "选择 TTS 发音语言", "取消", null,
-                    "日语 (ja-JP)", "中文 (zh-CN)", "英语 (en-US)");
-                if (choice == "取消" || string.IsNullOrEmpty(choice)) return;
-                if (choice.StartsWith("中文")) ttsLang = "zh-CN";
-                else if (choice.StartsWith("英语")) ttsLang = "en-US";
+                    Loc.T("title_choose_tts_lang"),
+                    Loc.T("action_cancel"), null,
+                    Loc.T("lang_ja_jp"), Loc.T("lang_zh_cn"), Loc.T("lang_en_us"));
+                if (choice == Loc.T("action_cancel") || string.IsNullOrEmpty(choice)) return;
+                if (choice == Loc.T("lang_zh_cn")) ttsLang = "zh-CN";
+                else if (choice == Loc.T("lang_en_us")) ttsLang = "en-US";
                 else ttsLang = "ja-JP";
             }
 
             string name = Path.GetFileNameWithoutExtension(result.FileName);
-            if (string.IsNullOrEmpty(name)) name = "自定义";
+            if (string.IsNullOrEmpty(name)) name = Loc.T("custom_default_name");
 
             ReclistProvider.SaveCustomReclist(name, ttsLang, reclist);
-            InitLanguagePicker();
+            ApplyLocalization();
             LanguagePicker.SelectedIndex = _languageList.Count - 1;
 
-            await DisplayAlertAsync("导入成功",
-                $"音素表: {name}\n音节数: {reclist.Count}\nTTS 语言: {ttsLang}",
-                "好");
+            await DisplayAlertAsync(Loc.T("title_import_success"),
+                Loc.F("msg_import_success_fmt", name, reclist.Count, ttsLang),
+                Loc.T("btn_ok"));
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("导入失败", ex.Message, "好");
+            await DisplayAlertAsync(Loc.T("title_import_failed"), ex.Message, Loc.T("btn_ok"));
         }
     }
 
     private async void OnClearReclistClicked(object sender, EventArgs e)
     {
-        bool ok = await DisplayAlertAsync("清除自定义音素表",
-            "确定要清除吗？", "清除", "取消");
+        bool ok = await DisplayAlertAsync(
+            Loc.T("title_clear_reclist"),
+            Loc.T("msg_clear_reclist"),
+            Loc.T("btn_clear_action"),
+            Loc.T("action_cancel"));
         if (!ok) return;
         ReclistProvider.ClearCustomReclist();
-        InitLanguagePicker();
+        ApplyLocalization();
     }
 
-    private static Dictionary<string, string> ParseReclist(
-        string content, out string languageCode)
+    private static Dictionary<string, string> ParseReclist(string content, out string languageCode)
     {
         var result = new Dictionary<string, string>();
         languageCode = "";
-
         var lines = content.Replace("\r\n", "\n").Split('\n');
         foreach (var raw in lines)
         {
             var line = raw.Trim();
             if (string.IsNullOrEmpty(line)) continue;
-
             if (line.StartsWith("#") || line.StartsWith("//"))
             {
                 var lower = line.ToLowerInvariant();
@@ -181,69 +218,57 @@ public partial class MainPage : ContentPage
                 }
                 continue;
             }
-
             int sep = -1;
             for (int i = 0; i < line.Length; i++)
             {
                 char c = line[i];
-                if (c == '=' || c == ',' || c == '\t' || c == ' ')
-                {
-                    sep = i;
-                    break;
-                }
+                if (c == '=' || c == ',' || c == '\t' || c == ' ') { sep = i; break; }
             }
             if (sep <= 0) continue;
-
             var alias = line.Substring(0, sep).Trim();
             var ttsText = line.Substring(sep + 1).Trim();
             if (string.IsNullOrEmpty(alias) || string.IsNullOrEmpty(ttsText)) continue;
-
             result[alias] = ttsText;
         }
-
         return result;
     }
 
     private void OnEngineChanged(object sender, EventArgs e)
     {
-        if (EnginePicker.SelectedIndex < 0 || EnginePicker.SelectedIndex >= _engines.Count)
-            return;
-        if (!string.IsNullOrWhiteSpace(NameEntry.Text))
-            return;
+        if (EnginePicker.SelectedIndex < 0 || EnginePicker.SelectedIndex >= _engines.Count) return;
+        if (!string.IsNullOrWhiteSpace(NameEntry.Text)) return;
 
         var label = _engines[EnginePicker.SelectedIndex].Label;
         if (string.IsNullOrWhiteSpace(label)) return;
 
         int idx = -1;
         for (int i = 2; i < label.Length; i++)
-        {
             if (char.IsDigit(label[i])) { idx = i; break; }
-        }
+
         var name = idx > 0 ? label.Substring(0, idx).TrimEnd('.', ' ', '-') : label;
-        if (!string.IsNullOrWhiteSpace(name))
-            NameEntry.Text = name;
+        if (!string.IsNullOrWhiteSpace(name)) NameEntry.Text = name;
     }
 
     private async void OnPickIconClicked(object sender, EventArgs e)
     {
-        var p = await PickImageAsync("选择图标");
-        if (p != null) { _iconPath = p; IconLabel.Text = "已选择: " + Path.GetFileName(p); }
+        var p = await PickImageAsync(Loc.T("btn_pick_icon"));
+        if (p != null) { _iconPath = p; IconLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p)); }
     }
 
     private void OnClearIconClicked(object sender, EventArgs e)
     {
-        _iconPath = null; IconLabel.Text = "未选择";
+        _iconPath = null; IconLabel.Text = Loc.T("not_selected");
     }
 
     private async void OnPickPortraitClicked(object sender, EventArgs e)
     {
-        var p = await PickImageAsync("选择立绘");
-        if (p != null) { _portraitPath = p; PortraitLabel.Text = "已选择: " + Path.GetFileName(p); }
+        var p = await PickImageAsync(Loc.T("btn_pick_portrait"));
+        if (p != null) { _portraitPath = p; PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p)); }
     }
 
     private void OnClearPortraitClicked(object sender, EventArgs e)
     {
-        _portraitPath = null; PortraitLabel.Text = "未选择";
+        _portraitPath = null; PortraitLabel.Text = Loc.T("not_selected");
     }
 
     private async Task<string?> PickImageAsync(string title)
@@ -265,14 +290,12 @@ public partial class MainPage : ContentPage
 
             using (var src = await result.OpenReadAsync())
             using (var dst = File.Create(local))
-            {
                 await src.CopyToAsync(dst);
-            }
             return local;
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("选择图片失败", ex.Message, "好");
+            await DisplayAlertAsync(Loc.T("title_pick_image_failed"), ex.Message, Loc.T("btn_ok"));
             return null;
         }
     }
@@ -292,13 +315,11 @@ public partial class MainPage : ContentPage
     {
         var root = GetExternalRoot();
         var safeName = SanitizeFileName(name);
-
         if (!string.IsNullOrEmpty(customRelative))
         {
             customRelative = customRelative.Trim().TrimStart('/', (char)92);
             return Path.Combine(root, customRelative, safeName);
         }
-
         return Path.Combine(root, "Download", "UtauTtsBuilder", safeName);
     }
 
@@ -318,16 +339,17 @@ public partial class MainPage : ContentPage
 
         if (engineIdx < 0 || string.IsNullOrEmpty(name))
         {
-            await DisplayAlertAsync("提示", "请选择引擎并输入声库名称", "确定");
+            await DisplayAlertAsync(Loc.T("title_tip"),
+                Loc.T("msg_select_engine_and_name"), Loc.T("btn_ok"));
             return;
         }
 
         string outputDir = ResolveOutputDir(name, customPath);
-
         try { Directory.CreateDirectory(outputDir); }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("无法创建目录", ex.Message, "确定");
+            await DisplayAlertAsync(Loc.T("title_cannot_create_dir"),
+                ex.Message, Loc.T("btn_ok"));
             return;
         }
 
@@ -343,14 +365,13 @@ public partial class MainPage : ContentPage
         RefreshBtn.IsEnabled = false;
 
         string? zipPath = null;
-
         try
         {
             await builder.BuildAsync(outputDir, name);
 
             if (ZipCheckBox.IsChecked)
             {
-                StatusLabel.Text = "正在压缩 ZIP...";
+                StatusLabel.Text = Loc.T("prog_compressing");
                 try
                 {
                     zipPath = outputDir.TrimEnd('/', (char)92) + ".zip";
@@ -359,34 +380,33 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    StatusLabel.Text = "压缩失败: " + ex.Message;
+                    StatusLabel.Text = Loc.F("prog_compress_failed_fmt", ex.Message);
                 }
             }
 
-            string msg = "声库已生成到:" + Environment.NewLine + outputDir;
-            if (zipPath != null)
-                msg += Environment.NewLine + Environment.NewLine + "ZIP: " + zipPath;
+            string msg = Loc.F("msg_done_fmt", outputDir, zipPath ?? "-");
 
             if (zipPath != null && File.Exists(zipPath))
             {
-                bool share = await DisplayAlertAsync("完成", msg, "分享 ZIP", "关闭");
+                bool share = await DisplayAlertAsync(Loc.T("title_done"), msg,
+                    Loc.T("btn_share_zip"), Loc.T("btn_close"));
                 if (share)
                 {
                     await Share.Default.RequestAsync(new ShareFileRequest
                     {
-                        Title = "分享声库 ZIP",
+                        Title = Loc.T("share_zip_title"),
                         File = new ShareFile(zipPath)
                     });
                 }
             }
             else
             {
-                await DisplayAlertAsync("完成", msg, "好");
+                await DisplayAlertAsync(Loc.T("title_done"), msg, Loc.T("btn_ok"));
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("错误", ex.Message, "确定");
+            await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
         finally
         {
