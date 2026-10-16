@@ -6,6 +6,7 @@ public partial class VoicebankListPage : ContentPage
 {
     public VoicebankListPage()
     {
+        Logger.Info("VoicebankListPage", "Constructing");
         InitializeComponent();
         ApplyLocalization();
         Reload();

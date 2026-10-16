@@ -6,6 +6,7 @@ public partial class LogViewerPage : ContentPage
 {
     public LogViewerPage()
     {
+        Logger.Info("LogViewerPage", "Constructing");
         InitializeComponent();
         ApplyLocalization();
         Reload();

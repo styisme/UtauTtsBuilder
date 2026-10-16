@@ -156,27 +156,45 @@ public partial class MainPage : ContentPage
         switch (action)
         {
             case "list":
-                await Navigation.PushAsync(new VoicebankListPage());
+                Logger.Info("MainPage", "→ Voicebank list");
+                try { await Navigation.PushAsync(new VoicebankListPage()); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
 
             case "batch":
-                await RunBatchAsync();
+                Logger.Info("MainPage", "→ Batch build");
+                try { await RunBatchAsync(); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
 
             case "compare":
-                await RunCompareAsync();
+                Logger.Info("MainPage", "→ Compare");
+                try { await RunCompareAsync(); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
 
             case "update":
-                await ManualCheckUpdateAsync();
+                Logger.Info("MainPage", "→ Manual update check");
+                try { await ManualCheckUpdateAsync(); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
 
             case "view_log":
-                await Navigation.PushAsync(new LogViewerPage());
+                Logger.Info("MainPage", "→ Log viewer");
+                try { await Navigation.PushAsync(new LogViewerPage()); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
 
             case "clear_cache":
-                await ClearCacheAsync();
+                Logger.Info("MainPage", "→ Clear cache");
+                try { await ClearCacheAsync(); }
+                catch (Exception ex) { Logger.Error("MainPage", ex); await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
+
                 break;
         }
     }

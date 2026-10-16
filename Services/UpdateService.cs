@@ -1,5 +1,5 @@
+using System.Net.NetworkInformation;
 using System.Text.Json;
-using UtauTtsBuilder.Services;
 
 namespace UtauTtsBuilder.Services;
 
@@ -41,6 +41,13 @@ public static class UpdateService
     {
         try
         {
+            // 先检测是否有网络
+            if (!IsNetworkAvailable())
+            {
+                Logger.Warn("Update", "No network available");
+                return null;
+            }
+
             Logger.Info("Update", "Checking for updates...");
             var json = await Http.GetStringAsync(RepoApi);
             using var doc = JsonDocument.Parse(json);
@@ -76,10 +83,32 @@ public static class UpdateService
                 HasUpdate = hasUpdate
             };
         }
+        catch (HttpRequestException ex)
+        {
+            Logger.Warn("Update", "Network error: " + ex.Message);
+            return null;
+        }
+        catch (TaskCanceledException)
+        {
+            Logger.Warn("Update", "Timeout");
+            return null;
+        }
         catch (Exception ex)
         {
             Logger.Error("Update", ex);
             return null;
+        }
+    }
+
+    private static bool IsNetworkAvailable()
+    {
+        try
+        {
+            return NetworkInterface.GetIsNetworkAvailable();
+        }
+        catch
+        {
+            return true; // 检测失败时仍然尝试
         }
     }
 
