@@ -204,6 +204,8 @@ public static class Loc
         ["reclist_ja_cvvc"] = ("日语 CVVC (133 音节)", "Japanese CVVC (133)", "日本語 CVVC（133 音節）"),
         ["reclist_ja_vcv"] = ("日语 VCV (105 音节)", "Japanese VCV (105)", "日本語 VCV（105 音節）"),
         ["reclist_zh_cv"] = ("中文 CV (78 音节)", "Chinese CV (78)", "中国語 CV（78 音節）"),
+        ["reclist_zh_cvvc"] = ("中文 CVVC (203 音节)", "Chinese CVVC (203)", "中国語 CVVC（203 音節）"),
+        ["reclist_zh_vcv"] = ("中文 VCV (130 音节)", "Chinese VCV (130)", "中国語 VCV（130 音節）"),
         ["reclist_en_cv"] = ("英语 CV (93 音节)", "English CV (93)", "英語 CV（93 音節）"),
         ["reclist_custom_fmt"] = ("自定义: {0}", "Custom: {0}", "カスタム：{0}"),
         ["custom_default_name"] = ("自定义", "Custom", "カスタム"),

@@ -6,6 +6,8 @@ public enum VoicebankLanguage
     JapaneseCvvc,
     JapaneseVcv,
     Chinese,
+    ChineseCvvc,
+    ChineseVcv,
     English,
     Custom
 }
@@ -92,6 +94,8 @@ public static class ReclistProvider
         VoicebankLanguage.JapaneseCvvc => BuildJapaneseCvvc(),
         VoicebankLanguage.JapaneseVcv => BuildJapaneseVcv(),
         VoicebankLanguage.Chinese => ConvertCvDict(ChineseCvList),
+        VoicebankLanguage.ChineseCvvc => BuildChineseCvvc(),
+        VoicebankLanguage.ChineseVcv => BuildChineseVcv(),
         VoicebankLanguage.English => ConvertCvDict(EnglishCvList),
         VoicebankLanguage.Custom => LoadCustomReclist(),
         _ => ConvertCvDict(JapaneseCvReclist.CvList)
@@ -114,6 +118,8 @@ public static class ReclistProvider
         VoicebankLanguage.JapaneseCvvc => "ja-JP",
         VoicebankLanguage.JapaneseVcv => "ja-JP",
         VoicebankLanguage.Chinese => "zh-CN",
+        VoicebankLanguage.ChineseCvvc => "zh-CN",
+        VoicebankLanguage.ChineseVcv => "zh-CN",
         VoicebankLanguage.English => "en-US",
         VoicebankLanguage.Custom => Preferences.Default.Get(KeyCustomLanguage, "ja-JP"),
         _ => "ja-JP"
@@ -125,24 +131,25 @@ public static class ReclistProvider
         VoicebankLanguage.JapaneseCvvc => Loc.T("reclist_ja_cvvc"),
         VoicebankLanguage.JapaneseVcv => Loc.T("reclist_ja_vcv"),
         VoicebankLanguage.Chinese => Loc.T("reclist_zh_cv"),
+        VoicebankLanguage.ChineseCvvc => Loc.T("reclist_zh_cvvc"),
+        VoicebankLanguage.ChineseVcv => Loc.T("reclist_zh_vcv"),
         VoicebankLanguage.English => Loc.T("reclist_en_cv"),
         VoicebankLanguage.Custom => Loc.F("reclist_custom_fmt", CustomReclistName),
         _ => Loc.T("reclist_ja_cv")
     };
 
     // ============================================================
-    // CVVC / VCV
+    // 日语 CVVC
     // ============================================================
     private static List<ReclistEntry> BuildJapaneseCvvc()
     {
         var list = new List<ReclistEntry>();
         foreach (var kv in JapaneseCvReclist.CvList)
-        {
             list.Add(new ReclistEntry
             {
                 Alias = kv.Key, TtsText = kv.Key, FileName = kv.Value, IsTransition = false
             });
-        }
+
         var vowels = new (string Roma, string Kana)[]
         {
             ("a", "あ"), ("i", "い"), ("u", "う"), ("e", "え"), ("o", "お")
@@ -166,7 +173,6 @@ public static class ReclistProvider
         };
         foreach (var v in vowels)
             foreach (var c in cons)
-            {
                 list.Add(new ReclistEntry
                 {
                     Alias = v.Roma + " " + c.Roma,
@@ -174,10 +180,12 @@ public static class ReclistProvider
                     FileName = v.Roma + "_" + c.Roma,
                     IsTransition = true
                 });
-            }
         return list;
     }
 
+    // ============================================================
+    // 日语 VCV
+    // ============================================================
     private static List<ReclistEntry> BuildJapaneseVcv()
     {
         var list = new List<ReclistEntry>();
@@ -230,6 +238,114 @@ public static class ReclistProvider
                 });
         return list;
     }
+
+    // ============================================================
+    // 中文 CVVC
+    // ============================================================
+    private static List<ReclistEntry> BuildChineseCvvc()
+    {
+        var list = new List<ReclistEntry>();
+
+        // CV：78 条（复用已有中文 CV）
+        foreach (var kv in ChineseCvList)
+            list.Add(new ReclistEntry
+            {
+                Alias = kv.Key, TtsText = kv.Key, FileName = kv.Value, IsTransition = false
+            });
+
+        // 5 个基础韵母
+        var vowels = new (string Roma, string Kana)[]
+        {
+            ("a", "啊"), ("o", "哦"), ("e", "鹅"), ("i", "衣"), ("u", "乌")
+        };
+
+        // VV 过渡：20 条
+        foreach (var v1 in vowels)
+            foreach (var v2 in vowels)
+            {
+                if (v1.Roma == v2.Roma) continue;
+                list.Add(new ReclistEntry
+                {
+                    Alias = v1.Roma + " " + v2.Roma,
+                    TtsText = v1.Kana + v2.Kana,
+                    FileName = "zh_" + v1.Roma + "_" + v2.Roma,
+                    IsTransition = true
+                });
+            }
+
+        // VC 过渡：5 × 21 = 105 条
+        var cons = ChineseConsonants();
+        foreach (var v in vowels)
+            foreach (var c in cons)
+                list.Add(new ReclistEntry
+                {
+                    Alias = v.Roma + " " + c.Roma,
+                    TtsText = v.Kana + c.Kana,
+                    FileName = "zh_" + v.Roma + "_" + c.Roma,
+                    IsTransition = true
+                });
+
+        return list;
+    }
+
+    // ============================================================
+    // 中文 VCV
+    // ============================================================
+    private static List<ReclistEntry> BuildChineseVcv()
+    {
+        var list = new List<ReclistEntry>();
+        var vowels = new (string Roma, string Kana)[]
+        {
+            ("a", "啊"), ("o", "哦"), ("e", "鹅"), ("i", "衣"), ("u", "乌")
+        };
+
+        // 单独韵母
+        foreach (var v in vowels)
+            list.Add(new ReclistEntry
+            {
+                Alias = v.Roma, TtsText = v.Kana,
+                FileName = "zh_" + v.Roma, IsTransition = false
+            });
+
+        // VV 过渡
+        foreach (var v1 in vowels)
+            foreach (var v2 in vowels)
+            {
+                if (v1.Roma == v2.Roma) continue;
+                list.Add(new ReclistEntry
+                {
+                    Alias = v1.Roma + " " + v2.Roma,
+                    TtsText = v1.Kana + v2.Kana,
+                    FileName = "zh_" + v1.Roma + "_" + v2.Roma,
+                    IsTransition = true
+                });
+            }
+
+        // 声母行过渡：21 × 5 = 105 条
+        var cons = ChineseConsonants();
+        foreach (var c in cons)
+            foreach (var v in vowels)
+                list.Add(new ReclistEntry
+                {
+                    Alias = v.Roma + " " + c.Roma + "a",
+                    TtsText = v.Kana + c.Kana,
+                    FileName = "zh_" + v.Roma + "_" + c.Roma + "a",
+                    IsTransition = true
+                });
+
+        return list;
+    }
+
+    // 中文 21 个声母，每个用 a 元音音节的汉字作代表
+    private static (string Roma, string Kana)[] ChineseConsonants() => new (string, string)[]
+    {
+        ("b", "八"), ("p", "怕"), ("m", "妈"), ("f", "发"),
+        ("d", "大"), ("t", "他"), ("n", "那"), ("l", "拉"),
+        ("g", "哥"), ("k", "可"), ("h", "喝"),
+        ("j", "机"), ("q", "七"), ("x", "西"),
+        ("zh", "知"), ("ch", "吃"), ("sh", "是"), ("r", "日"),
+        ("z", "字"), ("c", "次"), ("s", "思"),
+    };
 
     // ============================================================
     // 内置 CV 数据

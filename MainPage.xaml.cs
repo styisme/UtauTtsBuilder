@@ -79,6 +79,8 @@ public partial class MainPage : ContentPage
             VoicebankLanguage.JapaneseCvvc,
             VoicebankLanguage.JapaneseVcv,
             VoicebankLanguage.Chinese,
+            VoicebankLanguage.ChineseCvvc,
+            VoicebankLanguage.ChineseVcv,
             VoicebankLanguage.English,
         };
 
