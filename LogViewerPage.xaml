@@ -30,24 +30,16 @@
                x:Name="InfoLabel"
                FontSize="11"
                Margin="16,0,16,8"
-               TextColor="{DynamicResource Md3OnSurfaceVariant}"
-               LineBreakMode="WordWrap" />
+               TextColor="{DynamicResource Md3OnSurfaceVariant}" />
 
-        <Border Grid.Row="2"
-                Margin="12,0,12,0"
-                Padding="0"
-                StrokeThickness="0"
-                StrokeShape="RoundRectangle 12"
-                BackgroundColor="{DynamicResource Md3SurfaceContainer}">
-            <ScrollView x:Name="LogScroll" Padding="12">
-                <Label x:Name="LogLabel"
-                       FontFamily="Monospace"
-                       FontSize="11"
-                       LineHeight="1.3"
-                       TextColor="{DynamicResource Md3OnSurface}"
-                       LineBreakMode="WordWrap" />
-            </ScrollView>
-        </Border>
+        <ScrollView Grid.Row="2" x:Name="LogScroll">
+            <Label x:Name="LogLabel"
+                   FontFamily="Monospace"
+                   FontSize="11"
+                   Padding="12"
+                   TextColor="{DynamicResource Md3OnSurface}"
+                   LineBreakMode="WordWrap" />
+        </ScrollView>
 
         <VerticalStackLayout Grid.Row="3" Padding="12,12,12,24" Spacing="8">
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">

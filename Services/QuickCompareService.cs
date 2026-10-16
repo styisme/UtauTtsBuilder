@@ -2,10 +2,6 @@ using UtauTtsBuilder.Platforms.Android;
 
 namespace UtauTtsBuilder.Services;
 
-/// <summary>
-/// 对多个引擎快速合成同一个音节，用于对比音质。
-/// 只合成一个音节，不生成整个声库。
-/// </summary>
 public static class QuickCompareService
 {
     public class CompareResult
@@ -14,6 +10,9 @@ public static class QuickCompareService
         public string? WavPath { get; set; }
         public string? Error { get; set; }
     }
+
+    // 探测顺序：日语 → 中文 → 英语
+    private static readonly string[] FallbackLanguages = { "ja-JP", "zh-CN", "en-US" };
 
     public static async Task<List<CompareResult>> RunAsync(
         List<(string Package, string Label)> engines,
@@ -50,15 +49,36 @@ public static class QuickCompareService
                 }
                 else
                 {
-                    var local = new TtsSynthesizer(package);
-                    try
+                    // 本地引擎：逐个尝试候选语言
+                    var candidateLangs = BuildCandidates(languageCode);
+                    bool success = false;
+                    string? lastError = null;
+
+                    foreach (var lang in candidateLangs)
                     {
-                        await local.InitializeAsync(languageCode, speechRate, pitch);
-                        await local.SynthesizeToFileAsync(text, rawPath);
+                        var local = new TtsSynthesizer(package);
+                        try
+                        {
+                            await local.InitializeAsync(lang, speechRate, pitch);
+                            await local.SynthesizeToFileAsync(text, rawPath);
+                            success = true;
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            lastError = ex.Message;
+                        }
+                        finally
+                        {
+                            local.Dispose();
+                        }
                     }
-                    finally
+
+                    if (!success)
                     {
-                        local.Dispose();
+                        result.Error = lastError ?? "unsupported";
+                        results.Add(result);
+                        continue;
                     }
                 }
 
@@ -82,5 +102,16 @@ public static class QuickCompareService
         }
 
         return results;
+    }
+
+    private static List<string> BuildCandidates(string preferred)
+    {
+        var list = new List<string>();
+        if (!string.IsNullOrEmpty(preferred)) list.Add(preferred);
+        foreach (var lang in FallbackLanguages)
+        {
+            if (!list.Contains(lang)) list.Add(lang);
+        }
+        return list;
     }
 }

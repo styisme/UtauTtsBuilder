@@ -4,43 +4,16 @@ namespace UtauTtsBuilder;
 
 public partial class LogViewerPage : ContentPage
 {
-    private bool _subscribed;
-
     public LogViewerPage()
     {
-        Logger.Info("LogViewerPage", "Constructing");
         InitializeComponent();
         ApplyLocalization();
-        Logger.Info("LogViewerPage", "Constructed OK");
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Logger.Info("LogViewerPage", "Appearing");
-        if (!_subscribed)
-        {
-            Logger.LogChanged += OnLogChanged;
-            _subscribed = true;
-        }
         Reload();
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        Logger.Info("LogViewerPage", "Disappearing");
-        if (_subscribed)
-        {
-            Logger.LogChanged -= OnLogChanged;
-            _subscribed = false;
-        }
-    }
-
-    private void OnLogChanged()
-    {
-        // 日志更新时刷新（在 UI 线程）
-        Dispatcher.Dispatch(Reload);
     }
 
     private void ApplyLocalization()
@@ -56,27 +29,19 @@ public partial class LogViewerPage : ContentPage
         try
         {
             var path = Logger.GetCurrentFilePath();
-            var lines = Logger.GetLineCount();
-            var size = 0L;
+
+            long size = 0;
             try { if (File.Exists(path)) size = new FileInfo(path).Length; } catch { }
 
-            InfoLabel.Text = $"{path}\n{lines} lines · {size / 1024.0:F1} KB";
+            InfoLabel.Text = $"{path}  ({size / 1024.0:F1} KB)";
 
-            var text = Logger.ReadRecent(800);
-            if (string.IsNullOrWhiteSpace(text)) text = "(empty)";
+            var text = Logger.ReadRecent(500);
+            if (string.IsNullOrEmpty(text)) text = "(empty log)";
             LogLabel.Text = text;
-
-            Dispatcher.Dispatch(async () =>
-            {
-                await Task.Delay(80);
-                try { await LogScroll.ScrollToAsync(0, LogLabel.Height, false); }
-                catch { }
-            });
         }
         catch (Exception ex)
         {
-            LogLabel.Text = "(failed to load log: " + ex.Message + ")";
-            Logger.Error("LogViewerPage", ex);
+            LogLabel.Text = "(failed: " + ex.Message + ")";
         }
     }
 
@@ -101,7 +66,6 @@ public partial class LogViewerPage : ContentPage
         }
         catch (Exception ex)
         {
-            Logger.Error("LogViewerPage", ex);
             await DialogService.ShowAlertAsync(this,
                 Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
