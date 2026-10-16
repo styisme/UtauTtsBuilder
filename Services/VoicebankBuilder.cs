@@ -35,11 +35,17 @@ public class VoicebankBuilder
 
     public async Task BuildAsync(string outputDir, string characterName)
     {
-        var tts = new TtsSynthesizer(_enginePackage);
+        bool isCloud = CloudConfigService.IsCloudEngine(_enginePackage);
+        var cloudProvider = CloudConfigService.GetProvider(_enginePackage);
+
+        TtsSynthesizer? localTts = null;
+        CloudTtsEngine? cloudTts = null;
+
         var log = new StringBuilder();
         log.AppendLine("UTAU Voicebank Builder - Build Log");
         log.AppendLine("Time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         log.AppendLine("Engine: " + (_enginePackage ?? "(default)"));
+        log.AppendLine("IsCloud: " + isCloud);
         log.AppendLine("Language: " + _language);
         log.AppendLine("SpeechRate: " + _speechRate.ToString("F2"));
         log.AppendLine("Pitch: " + _pitch.ToString("F2"));
@@ -50,7 +56,17 @@ public class VoicebankBuilder
         {
             var langCode = ReclistProvider.GetLanguageCode(_language);
             _progress.Report(Loc.F("prog_init_engine_fmt", langCode));
-            await tts.InitializeAsync(langCode, _speechRate, _pitch);
+
+            if (isCloud)
+            {
+                cloudTts = new CloudTtsEngine(cloudProvider);
+                await cloudTts.InitializeAsync(langCode);
+            }
+            else
+            {
+                localTts = new TtsSynthesizer(_enginePackage);
+                await localTts.InitializeAsync(langCode, _speechRate, _pitch);
+            }
 
             Directory.CreateDirectory(outputDir);
             var rawDir = Path.Combine(outputDir, "_raw");
@@ -73,7 +89,7 @@ public class VoicebankBuilder
 
                 try
                 {
-                    // ===== 断点续传：文件已存在则跳过合成 =====
+                    // 断点续传
                     if (_skipExisting
                         && File.Exists(finalPath)
                         && new FileInfo(finalPath).Length > 44)
@@ -95,7 +111,15 @@ public class VoicebankBuilder
                     else
                     {
                         sw.Restart();
-                        await tts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+
+                        // ★ 核心：本地 / 云端分发
+                        if (isCloud && cloudTts != null)
+                            await cloudTts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+                        else if (localTts != null)
+                            await localTts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+                        else
+                            throw new Exception("无可用 TTS 引擎");
+
                         sw.Stop();
 
                         if (!File.Exists(rawPath) || new FileInfo(rawPath).Length <= 44)
@@ -168,7 +192,7 @@ public class VoicebankBuilder
             await OtoGenerator.WriteCharacterYamlAsync(
                 outputDir, characterName, iconFileName, portraitFileName, _author);
 
-            // ===== 写日志 =====
+            // 日志
             log.AppendLine(new string('-', 60));
             log.AppendLine($"Total: {total}, OK: {total - failed - skipped - shared}, "
                 + $"Shared: {shared}, Skipped: {skipped}, Failed: {failed}");
@@ -182,6 +206,9 @@ public class VoicebankBuilder
             _progress.Report(Loc.F("prog_done_fmt",
                 otoEntries.Count, shared + skipped, failed));
         }
-        finally { tts.Dispose(); }
+        finally
+        {
+            localTts?.Dispose();
+        }
     }
 }

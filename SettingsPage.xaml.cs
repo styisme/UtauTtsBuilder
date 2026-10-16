@@ -34,6 +34,7 @@ public partial class SettingsPage : ContentPage
         DynamicTitle.Text = Loc.T("settings_use_wallpaper");
         DynamicHint.Text = Loc.T("settings_dynamic_hint");
         DynamicFooter.Text = Loc.T("settings_dynamic_footer");
+        CloudBtn.Text = Loc.T("settings_cloud");
         AboutBtn.Text = Loc.T("settings_about");
     }
 
@@ -91,14 +92,10 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    // ===== 带淡入淡出动画的主题应用 =====
     private async Task ApplyThemeWithAnimation()
     {
-        // 变暗
         await this.FadeTo(0.4, 90, Easing.CubicOut);
-        // 换色
         ThemeService.Apply();
-        // 淡入
         await this.FadeTo(1.0, 180, Easing.CubicIn);
     }
 
@@ -107,7 +104,6 @@ public partial class SettingsPage : ContentPage
         if (sender == ThemeAutoBtn) ThemeService.Mode = ThemeMode.Auto;
         else if (sender == ThemeLightBtn) ThemeService.Mode = ThemeMode.Light;
         else if (sender == ThemeDarkBtn) ThemeService.Mode = ThemeMode.Dark;
-
         await ApplyThemeWithAnimation();
         RefreshThemeButtons();
     }
@@ -118,7 +114,6 @@ public partial class SettingsPage : ContentPage
         else if (sender == StyleHarmonyBtn) UiStyleService.Style = UiStyle.Harmony;
         else if (sender == StyleUwpBtn) UiStyleService.Style = UiStyle.Uwp;
         else if (sender == StyleA4Btn) UiStyleService.Style = UiStyle.Android4;
-
         await ApplyThemeWithAnimation();
         RefreshUiStyleButtons();
     }
@@ -130,7 +125,6 @@ public partial class SettingsPage : ContentPage
         else if (sender == LangEnBtn) Loc.Mode = UiLanguage.English;
         else if (sender == LangJaBtn) Loc.Mode = UiLanguage.Japanese;
 
-        // 语言切换也用淡入淡出
         await this.FadeTo(0.4, 90, Easing.CubicOut);
         ApplyLocalization();
         RefreshLanguageButtons();
@@ -142,6 +136,11 @@ public partial class SettingsPage : ContentPage
         if (_initializing) return;
         ThemeService.DynamicColorEnabled = e.Value;
         await ApplyThemeWithAnimation();
+    }
+
+    private async void OnCloudSettingsClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new CloudSettingsPage());
     }
 
     private async void OnAboutClicked(object sender, EventArgs e)

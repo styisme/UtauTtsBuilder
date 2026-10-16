@@ -8,7 +8,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,40" Spacing="20">
 
-            <!-- ===== 自定义 TopBar ===== -->
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
                 <Button Grid.Column="0"
                         Text="←"
@@ -25,7 +24,7 @@
                        VerticalOptions="Center" />
             </Grid>
 
-            <!-- ===== 外观 ===== -->
+            <!-- 外观 -->
             <Label x:Name="AppearanceLabel" Style="{StaticResource Md3TitleMedium}" />
             <VerticalStackLayout Spacing="8">
                 <Button x:Name="ThemeAutoBtn"  Style="{StaticResource Md3TonalButton}" Clicked="OnThemeModeButtonClicked" />
@@ -33,7 +32,7 @@
                 <Button x:Name="ThemeDarkBtn"  Style="{StaticResource Md3TonalButton}" Clicked="OnThemeModeButtonClicked" />
             </VerticalStackLayout>
 
-            <!-- ===== UI 风格 ===== -->
+            <!-- UI 风格 -->
             <Label x:Name="UiStyleLabel" Style="{StaticResource Md3TitleMedium}" />
             <VerticalStackLayout Spacing="8">
                 <Button x:Name="StyleMd3Btn"     Style="{StaticResource Md3TonalButton}" Clicked="OnUiStyleClicked" />
@@ -42,7 +41,7 @@
                 <Button x:Name="StyleA4Btn"      Style="{StaticResource Md3TonalButton}" Clicked="OnUiStyleClicked" />
             </VerticalStackLayout>
 
-            <!-- ===== 界面语言 ===== -->
+            <!-- 语言 -->
             <Label x:Name="LanguageSectionLabel" Style="{StaticResource Md3TitleMedium}" />
             <VerticalStackLayout Spacing="8">
                 <Button x:Name="LangAutoBtn" Style="{StaticResource Md3TonalButton}" Clicked="OnLanguageButtonClicked" />
@@ -51,7 +50,7 @@
                 <Button x:Name="LangJaBtn"   Style="{StaticResource Md3TonalButton}" Clicked="OnLanguageButtonClicked" />
             </VerticalStackLayout>
 
-            <!-- ===== 动态取色 ===== -->
+            <!-- 动态取色 -->
             <Label x:Name="DynamicLabel" Style="{StaticResource Md3TitleMedium}" />
             <Border Style="{StaticResource Md3Card}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -74,10 +73,15 @@
                    TextColor="{DynamicResource Md3OnSurfaceVariant}"
                    Margin="4,0,0,0" />
 
-            <!-- ===== 关于 ===== -->
+            <!-- 云端 TTS -->
+            <Button x:Name="CloudBtn"
+                    Style="{StaticResource Md3TonalButton}"
+                    Margin="0,8,0,0"
+                    Clicked="OnCloudSettingsClicked" />
+
+            <!-- 关于 -->
             <Button x:Name="AboutBtn"
                     Style="{StaticResource Md3OutlinedButton}"
-                    Margin="0,8,0,0"
                     Clicked="OnAboutClicked" />
 
         </VerticalStackLayout>

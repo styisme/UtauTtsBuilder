@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.CloudSettingsPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,40" Spacing="20">
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                <Button Grid.Column="0"
+                        Text="←"
+                        FontSize="20"
+                        WidthRequest="44" HeightRequest="44"
+                        CornerRadius="22" Padding="0"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Md3OnSurface}"
+                        Clicked="OnBackClicked" />
+                <Label Grid.Column="1"
+                       x:Name="TopTitle"
+                       FontSize="20" FontAttributes="Bold"
+                       TextColor="{DynamicResource Md3OnSurface}"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <Label x:Name="DescLabel"
+                   FontSize="12"
+                   TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                   LineBreakMode="WordWrap" />
+
+            <!-- ===== Azure ===== -->
+            <Label x:Name="AzureTitle" Style="{StaticResource Md3TitleMedium}" />
+            <Border Style="{StaticResource Md3TextField}">
+                <Entry x:Name="AzureKeyEntry"
+                       IsPassword="True"
+                       PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
+                       TextColor="{DynamicResource Md3OnSurface}" />
+            </Border>
+            <Border Style="{StaticResource Md3TextField}">
+                <Entry x:Name="AzureRegionEntry"
+                       PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
+                       TextColor="{DynamicResource Md3OnSurface}" />
+            </Border>
+            <Border Style="{StaticResource Md3TextField}">
+                <Entry x:Name="AzureVoiceEntry"
+                       PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
+                       TextColor="{DynamicResource Md3OnSurface}" />
+            </Border>
+
+            <!-- ===== Google ===== -->
+            <Label x:Name="GoogleTitle" Style="{StaticResource Md3TitleMedium}" />
+            <Border Style="{StaticResource Md3TextField}">
+                <Entry x:Name="GoogleKeyEntry"
+                       IsPassword="True"
+                       PlaceholderColor="{DynamicResource Md3OnSurfaceVariant}"
+                       TextColor="{DynamicResource Md3OnSurface}" />
+            </Border>
+
+            <Button x:Name="SaveBtn"
+                    Style="{StaticResource Md3FilledButton}"
+                    Clicked="OnSaveClicked" />
+
+            <Label x:Name="HintLabel"
+                   FontSize="11"
+                   TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                   LineBreakMode="WordWrap" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

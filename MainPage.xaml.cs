@@ -6,7 +6,10 @@ namespace UtauTtsBuilder;
 
 public partial class MainPage : ContentPage
 {
-    private List<TtsEngineInfo> _engines = new();
+    private List<TtsEngineInfo> _localEngines = new();
+    private List<string> _engineLabels = new();      // 显示名（含本地 + 云端）
+    private List<string> _enginePackages = new();    // 对应的引擎包名（含云端虚包名）
+
     private string? _iconPath;
     private string? _portraitPath;
     private List<VoicebankLanguage> _languageList = new();
@@ -24,7 +27,8 @@ public partial class MainPage : ContentPage
         base.OnAppearing();
         ThemeService.Apply();
         ApplyLocalization();
-        if (_engines.Count == 0) LoadEngines();
+        // 每次回来都刷新引擎列表（云端配置可能变了）
+        LoadEngines();
     }
 
     private void ApplyLocalization()
@@ -63,9 +67,6 @@ public partial class MainPage : ContentPage
 
         if (string.IsNullOrEmpty(_portraitPath)) PortraitLabel.Text = Loc.T("not_selected");
         else PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_portraitPath));
-
-        if (_engines.Count > 0)
-            StatusLabel.Text = Loc.F("engines_found_fmt", _engines.Count);
 
         InitLanguagePicker();
     }
@@ -112,17 +113,45 @@ public partial class MainPage : ContentPage
         return VoicebankLanguage.Japanese;
     }
 
+    // ============================================================
+    // 引擎列表：本地 + 云端混合
+    // ============================================================
     private void LoadEngines()
     {
         try
         {
-            _engines = TtsEngineHelper.GetAvailableEngines();
-            EnginePicker.ItemsSource = _engines
-                .Select(e => e.IsDefault ? "★ " + e.Label : e.Label)
-                .ToList();
-            var defaultIdx = _engines.FindIndex(e => e.IsDefault);
+            _localEngines = TtsEngineHelper.GetAvailableEngines();
+            _engineLabels.Clear();
+            _enginePackages.Clear();
+
+            foreach (var e in _localEngines)
+            {
+                _engineLabels.Add(e.IsDefault ? "★ " + e.Label : e.Label);
+                _enginePackages.Add(e.Name);
+            }
+
+            // 追加云端引擎
+            if (CloudConfigService.AzureConfigured)
+            {
+                var voice = CloudConfigService.AzureVoice;
+                _engineLabels.Add("☁ " + Loc.F("engine_azure_fmt", voice));
+                _enginePackages.Add(CloudConfigService.AzureEnginePackage);
+            }
+            if (CloudConfigService.GoogleConfigured)
+            {
+                _engineLabels.Add("☁ " + Loc.F("engine_google_fmt", "Text-to-Speech"));
+                _enginePackages.Add(CloudConfigService.GoogleEnginePackage);
+            }
+
+            EnginePicker.ItemsSource = _engineLabels;
+
+            // 默认选第一个本地引擎
+            var defaultIdx = _localEngines.FindIndex(e => e.IsDefault);
             if (defaultIdx >= 0) EnginePicker.SelectedIndex = defaultIdx;
-            StatusLabel.Text = Loc.F("engines_found_fmt", _engines.Count);
+            else if (_engineLabels.Count > 0) EnginePicker.SelectedIndex = 0;
+
+            var total = _engineLabels.Count;
+            StatusLabel.Text = Loc.F("engines_found_fmt", total);
         }
         catch (Exception ex)
         {
@@ -132,7 +161,6 @@ public partial class MainPage : ContentPage
 
     private void OnRefreshClicked(object sender, EventArgs e)
     {
-        _engines.Clear();
         LoadEngines();
     }
 
@@ -142,15 +170,8 @@ public partial class MainPage : ContentPage
     }
 
     // ===== 语速 / 音高 =====
-    private void OnSpeedChanged(object sender, ValueChangedEventArgs e)
-    {
-        UpdateSpeedLabel();
-    }
-
-    private void OnPitchChanged(object sender, ValueChangedEventArgs e)
-    {
-        UpdatePitchLabel();
-    }
+    private void OnSpeedChanged(object sender, ValueChangedEventArgs e) => UpdateSpeedLabel();
+    private void OnPitchChanged(object sender, ValueChangedEventArgs e) => UpdatePitchLabel();
 
     private void UpdateSpeedLabel()
     {
@@ -262,20 +283,33 @@ public partial class MainPage : ContentPage
         return result;
     }
 
+    // ===== 自动填写声库名 =====
     private void OnEngineChanged(object sender, EventArgs e)
     {
-        if (EnginePicker.SelectedIndex < 0 || EnginePicker.SelectedIndex >= _engines.Count) return;
+        if (EnginePicker.SelectedIndex < 0
+            || EnginePicker.SelectedIndex >= _engineLabels.Count) return;
         if (!string.IsNullOrWhiteSpace(NameEntry.Text)) return;
 
-        var label = _engines[EnginePicker.SelectedIndex].Label;
+        var label = _engineLabels[EnginePicker.SelectedIndex];
         if (string.IsNullOrWhiteSpace(label)) return;
 
-        int idx = -1;
-        for (int i = 2; i < label.Length; i++)
-            if (char.IsDigit(label[i])) { idx = i; break; }
+        // 去掉星号、云图标、版本号
+        var name = label
+            .TrimStart('★', '☁', ' ')
+            .Trim();
 
-        var name = idx > 0 ? label.Substring(0, idx).TrimEnd('.', ' ', '-') : label;
-        if (!string.IsNullOrWhiteSpace(name)) NameEntry.Text = name;
+        // 遇到数字就截断（去掉版本号）
+        int idx = -1;
+        for (int i = 2; i < name.Length; i++)
+        {
+            if (char.IsDigit(name[i])) { idx = i; break; }
+        }
+        if (idx > 0) name = name.Substring(0, idx);
+
+        name = name.TrimEnd('.', ' ', '-', '(', ')');
+
+        if (!string.IsNullOrWhiteSpace(name))
+            NameEntry.Text = name;
     }
 
     private async void OnPickIconClicked(object sender, EventArgs e)
@@ -285,11 +319,7 @@ public partial class MainPage : ContentPage
         {
             _iconPath = p;
             IconLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p));
-            try
-            {
-                IconPreview.Source = ImageSource.FromFile(p);
-            }
-            catch { }
+            try { IconPreview.Source = ImageSource.FromFile(p); } catch { }
         }
     }
 
@@ -307,11 +337,7 @@ public partial class MainPage : ContentPage
         {
             _portraitPath = p;
             PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p));
-            try
-            {
-                PortraitPreview.Source = ImageSource.FromFile(p);
-            }
-            catch { }
+            try { PortraitPreview.Source = ImageSource.FromFile(p); } catch { }
         }
     }
 
@@ -381,6 +407,9 @@ public partial class MainPage : ContentPage
         return name.Trim();
     }
 
+    // ============================================================
+    // 生成
+    // ============================================================
     private async void OnBuildClicked(object sender, EventArgs e)
     {
         int engineIdx = EnginePicker.SelectedIndex;
@@ -388,7 +417,8 @@ public partial class MainPage : ContentPage
         var customPath = OutputDirEntry.Text?.Trim();
         var author = AuthorEntry.Text?.Trim();
 
-        if (engineIdx < 0 || string.IsNullOrEmpty(name))
+        if (engineIdx < 0 || engineIdx >= _enginePackages.Count
+            || string.IsNullOrEmpty(name))
         {
             await DisplayAlertAsync(Loc.T("title_tip"),
                 Loc.T("msg_select_engine_and_name"), Loc.T("btn_ok"));
@@ -405,14 +435,14 @@ public partial class MainPage : ContentPage
         }
 
         var language = GetSelectedLanguage();
-        var engine = _engines[engineIdx];
+        var enginePackage = _enginePackages[engineIdx];
         float speechRate = (float)SpeedSlider.Value;
         float pitch = (float)PitchSlider.Value;
         bool skipExisting = SkipExistingCheckBox.IsChecked;
 
         var progress = new Progress<string>(msg => { StatusLabel.Text = msg; });
         var builder = new VoicebankBuilder(
-            engine.Name, progress, language, _iconPath, _portraitPath, author,
+            enginePackage, progress, language, _iconPath, _portraitPath, author,
             speechRate, pitch, skipExisting);
 
         ProgressBar.IsVisible = true;
@@ -439,25 +469,8 @@ public partial class MainPage : ContentPage
                 }
             }
 
-            string msg = Loc.F("msg_done_fmt", outputDir, zipPath ?? "-");
-
-            if (zipPath != null && File.Exists(zipPath))
-            {
-                bool share = await DisplayAlertAsync(Loc.T("title_done"), msg,
-                    Loc.T("btn_share_zip"), Loc.T("btn_close"));
-                if (share)
-                {
-                    await Share.Default.RequestAsync(new ShareFileRequest
-                    {
-                        Title = Loc.T("share_zip_title"),
-                        File = new ShareFile(zipPath)
-                    });
-                }
-            }
-            else
-            {
-                await DisplayAlertAsync(Loc.T("title_done"), msg, Loc.T("btn_ok"));
-            }
+            // ===== 完成后的操作菜单 =====
+            await ShowCompletionMenuAsync(outputDir, name, zipPath);
         }
         catch (Exception ex)
         {
@@ -468,6 +481,87 @@ public partial class MainPage : ContentPage
             ProgressBar.IsVisible = false;
             BuildButton.IsEnabled = true;
             RefreshBtn.IsEnabled = true;
+        }
+    }
+
+    private async Task ShowCompletionMenuAsync(string outputDir, string name, string? zipPath)
+    {
+        var otoPath = Path.Combine(outputDir, "oto.ini");
+        var hasOto = File.Exists(otoPath);
+        var hasZip = zipPath != null && File.Exists(zipPath);
+
+        var actions = new List<string>();
+        var keyMap = new Dictionary<string, string>();
+
+        if (hasOto)
+        {
+            var s = Loc.T("action_edit_oto");
+            actions.Add(s); keyMap[s] = "edit_oto";
+        }
+        var sUst = Loc.T("action_gen_ust");
+        actions.Add(sUst); keyMap[sUst] = "gen_ust";
+
+        if (hasZip)
+        {
+            var s = Loc.T("btn_share_zip");
+            actions.Add(s); keyMap[s] = "share_zip";
+        }
+        var sClose = Loc.T("btn_close");
+        actions.Add(sClose); keyMap[sClose] = "close";
+
+        var choice = await DisplayActionSheet(
+            Loc.T("title_done"),
+            Loc.T("action_cancel"),
+            null,
+            actions.ToArray());
+
+        if (choice == null || choice == Loc.T("action_cancel")) return;
+        if (!keyMap.TryGetValue(choice, out var action)) return;
+
+        switch (action)
+        {
+            case "edit_oto":
+                try
+                {
+                    await Share.Default.RequestAsync(new ShareFileRequest
+                    {
+                        Title = Loc.T("action_edit_oto"),
+                        File = new ShareFile(otoPath)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                }
+                break;
+
+            case "gen_ust":
+                try
+                {
+                    var ustPath = await UstTemplateGenerator.GenerateAsync(outputDir, name);
+                    await DisplayAlertAsync(Loc.T("title_done"),
+                        Loc.F("ust_generated_fmt", ustPath), Loc.T("btn_ok"));
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                }
+                break;
+
+            case "share_zip":
+                try
+                {
+                    await Share.Default.RequestAsync(new ShareFileRequest
+                    {
+                        Title = Loc.T("share_zip_title"),
+                        File = new ShareFile(zipPath!)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                }
+                break;
         }
     }
 }
