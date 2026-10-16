@@ -4,7 +4,8 @@
              x:Class="UtauTtsBuilder.App">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- ===== MD3 浅色基线（默认值，运行时可被替换） ===== -->
+
+            <!-- ===== MD3 基线色板 ===== -->
             <Color x:Key="Md3Primary">#6750A4</Color>
             <Color x:Key="Md3OnPrimary">#FFFFFF</Color>
             <Color x:Key="Md3PrimaryContainer">#EADDFF</Color>
@@ -19,7 +20,17 @@
             <Color x:Key="Md3OutlineVariant">#CAC4D0</Color>
             <Color x:Key="Md3SurfaceContainer">#F3EDF7</Color>
 
-            <!-- ===== 通用排版与组件样式 ===== -->
+            <!-- ===== 导航栏（统一 SettingsPage 顶栏）===== -->
+            <Style TargetType="NavigationPage">
+                <Setter Property="BarBackgroundColor"
+                        Value="{DynamicResource Md3SurfaceContainer}" />
+                <Setter Property="BarTextColor"
+                        Value="{DynamicResource Md3OnSurface}" />
+                <Setter Property="IconColor"
+                        Value="{DynamicResource Md3OnSurface}" />
+            </Style>
+
+            <!-- ===== 排版样式 ===== -->
             <Style x:Key="Md3Headline" TargetType="Label">
                 <Setter Property="FontSize" Value="32" />
                 <Setter Property="FontAttributes" Value="Bold" />
@@ -93,6 +104,7 @@
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Padding" Value="20,0" />
             </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
