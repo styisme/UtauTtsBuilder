@@ -2,9 +2,6 @@ namespace UtauTtsBuilder.Services;
 
 public static class PreviewImageGenerator
 {
-    /// <summary>
-    /// 生成一张简单的预览 PNG：白底 + 声库名 + 音节数 + 日期
-    /// </summary>
     public static Task<string?> GenerateAsync(
         string outputDir, string name, int wavCount, string? iconPath)
     {
@@ -18,21 +15,26 @@ public static class PreviewImageGenerator
         {
             const int W = 512, H = 320;
 
+            bool dark = ThemeService.IsDark;
+            string bgHex = dark ? "#141218" : "#FEF7FF";
+            string barHex = dark ? "#D0BCFF" : "#512BD4";
+            string nameHex = dark ? "#E6E0E9" : "#1D1B20";
+            string statHex = dark ? "#CAC4D0" : "#49454F";
+            string footHex = dark ? "#938F99" : "#79747E";
+
             var bmp = global::Android.Graphics.Bitmap.CreateBitmap(
                 W, H, global::Android.Graphics.Bitmap.Config.Argb8888!);
             if (bmp == null) return null;
 
             using var canvas = new global::Android.Graphics.Canvas(bmp);
-            canvas.DrawColor(global::Android.Graphics.Color.ParseColor("#FEF7FF"));
+            canvas.DrawColor(global::Android.Graphics.Color.ParseColor(bgHex));
 
-            // 顶部色条
             using var barPaint = new global::Android.Graphics.Paint
             {
-                Color = global::Android.Graphics.Color.ParseColor("#512BD4")
+                Color = global::Android.Graphics.Color.ParseColor(barHex)
             };
             canvas.DrawRect(0, 0, W, 60, barPaint);
 
-            // 图标
             const int iconSize = 100;
             const int iconX = 32;
             const int iconY = 90;
@@ -52,30 +54,27 @@ public static class PreviewImageGenerator
                 catch { }
             }
 
-            // 名称
             using var namePaint = new global::Android.Graphics.Paint
             {
-                Color = global::Android.Graphics.Color.ParseColor("#1D1B20"),
+                Color = global::Android.Graphics.Color.ParseColor(nameHex),
                 TextSize = 42,
                 FakeBoldText = true,
                 AntiAlias = true
             };
             canvas.DrawText(name, iconX + iconSize + 24, iconY + 50, namePaint);
 
-            // 统计
             using var statPaint = new global::Android.Graphics.Paint
             {
-                Color = global::Android.Graphics.Color.ParseColor("#49454F"),
+                Color = global::Android.Graphics.Color.ParseColor(statHex),
                 TextSize = 24,
                 AntiAlias = true
             };
             canvas.DrawText($"{wavCount} syllables",
                 iconX + iconSize + 24, iconY + 90, statPaint);
 
-            // 底部说明
             using var footPaint = new global::Android.Graphics.Paint
             {
-                Color = global::Android.Graphics.Color.ParseColor("#79747E"),
+                Color = global::Android.Graphics.Color.ParseColor(footHex),
                 TextSize = 18,
                 AntiAlias = true
             };

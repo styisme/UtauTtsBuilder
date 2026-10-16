@@ -60,7 +60,7 @@ public partial class PreviewImagePage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Error", ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, "Error", ex.Message, Loc.T("btn_ok"));
         }
     }
 
@@ -79,7 +79,7 @@ public partial class PreviewImagePage : ContentPage
         var wavs = Directory.GetFiles(_outputDir, "*.wav");
         if (wavs.Length == 0)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), "No wav files", Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), "No wav files", Loc.T("btn_ok"));
             return;
         }
         try
@@ -89,7 +89,7 @@ public partial class PreviewImagePage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
     }
 
@@ -98,7 +98,7 @@ public partial class PreviewImagePage : ContentPage
         var samples = AudioPreviewer.SampleRandom(_outputDir, 3);
         if (samples.Count == 0)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), "No wav files", Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), "No wav files", Loc.T("btn_ok"));
             return;
         }
 
@@ -118,7 +118,7 @@ public partial class PreviewImagePage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
     }
 
@@ -138,7 +138,7 @@ public partial class PreviewImagePage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
     }
 

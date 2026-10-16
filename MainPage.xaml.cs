@@ -136,7 +136,7 @@ public partial class MainPage : ContentPage
     {
         if (_engineLabels.Count == 0)
         {
-            await DisplayAlertAsync(Loc.T("title_tip"),
+            await DialogService.ShowAlertAsync(this, Loc.T("title_tip"),
                 Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
             return;
         }
@@ -260,7 +260,7 @@ public partial class MainPage : ContentPage
             var reclist = ParseReclist(content, out var langFromFile);
             if (reclist.Count == 0)
             {
-                await DisplayAlertAsync(Loc.T("title_parse_failed"),
+                await DialogService.ShowAlertAsync(this, Loc.T("title_parse_failed"),
                     Loc.T("msg_parse_failed"), Loc.T("btn_ok"));
                 return;
             }
@@ -291,19 +291,19 @@ public partial class MainPage : ContentPage
             LanguageValueLabel.Text = ReclistProvider.GetDisplayName(
                 _languageList[_selectedLanguageIndex]);
 
-            await DisplayAlertAsync(Loc.T("title_import_success"),
+            await DialogService.ShowAlertAsync(this, Loc.T("title_import_success"),
                 Loc.F("msg_import_success_fmt", name, reclist.Count, ttsLang),
                 Loc.T("btn_ok"));
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_import_failed"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_import_failed"), ex.Message, Loc.T("btn_ok"));
         }
     }
 
     private async void OnClearReclistClicked(object sender, EventArgs e)
     {
-        bool ok = await DisplayAlertAsync(
+        bool ok = await DialogService.ShowConfirmAsync(this, 
             Loc.T("title_clear_reclist"),
             Loc.T("msg_clear_reclist"),
             Loc.T("btn_clear_action"),
@@ -409,7 +409,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_pick_image_failed"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_pick_image_failed"), ex.Message, Loc.T("btn_ok"));
             return null;
         }
     }
@@ -453,7 +453,7 @@ public partial class MainPage : ContentPage
         if (_selectedEngineIndex < 0 || _selectedEngineIndex >= _enginePackages.Count
             || string.IsNullOrEmpty(name))
         {
-            await DisplayAlertAsync(Loc.T("title_tip"),
+            await DialogService.ShowAlertAsync(this, Loc.T("title_tip"),
                 Loc.T("msg_select_engine_and_name"), Loc.T("btn_ok"));
             return;
         }
@@ -462,7 +462,7 @@ public partial class MainPage : ContentPage
         try { Directory.CreateDirectory(outputDir); }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_cannot_create_dir"),
+            await DialogService.ShowAlertAsync(this, Loc.T("title_cannot_create_dir"),
                 ex.Message, Loc.T("btn_ok"));
             return;
         }
@@ -506,7 +506,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
         finally
         {
@@ -557,7 +557,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
 
@@ -565,12 +565,12 @@ public partial class MainPage : ContentPage
                 try
                 {
                     var ustPath = await UstTemplateGenerator.GenerateAsync(outputDir, name);
-                    await DisplayAlertAsync(Loc.T("title_done"),
+                    await DialogService.ShowAlertAsync(this, Loc.T("title_done"),
                         Loc.F("ust_generated_fmt", ustPath), Loc.T("btn_ok"));
                 }
                 catch (Exception ex)
                 {
-                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
 
@@ -585,7 +585,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    await DisplayAlertAsync(Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
         }

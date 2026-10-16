@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.AlertPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="Transparent">
+
+    <Grid BackgroundColor="#80000000">
+
+        <Border
+            x:Name="DialogBox"
+            Padding="24,20"
+            Margin="24,0"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            MaximumWidthRequest="420"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 20">
+
+            <VerticalStackLayout Spacing="16">
+
+                <Label x:Name="TitleLabel"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       LineBreakMode="WordWrap" />
+
+                <Label x:Name="MessageLabel"
+                       FontSize="14"
+                       LineBreakMode="WordWrap" />
+
+                <HorizontalStackLayout x:Name="ButtonsRow"
+                                       Spacing="8"
+                                       HorizontalOptions="End" />
+
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

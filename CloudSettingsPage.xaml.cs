@@ -42,7 +42,7 @@ public partial class CloudSettingsPage : ContentPage
             ? "ja-JP-NanamiNeural" : AzureVoiceEntry.Text.Trim();
         CloudConfigService.GoogleApiKey = GoogleKeyEntry.Text?.Trim() ?? "";
 
-        await DisplayAlertAsync(Loc.T("btn_save"),
+        await DialogService.ShowAlertAsync(this, Loc.T("btn_save"),
             Loc.T("cloud_saved"), Loc.T("btn_ok"));
     }
 

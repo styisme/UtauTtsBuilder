@@ -43,7 +43,7 @@ public partial class AboutPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Error", ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, "Error", ex.Message, Loc.T("btn_ok"));
         }
     }
 
@@ -55,7 +55,7 @@ public partial class AboutPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Error", ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this, "Error", ex.Message, Loc.T("btn_ok"));
         }
     }
 }
