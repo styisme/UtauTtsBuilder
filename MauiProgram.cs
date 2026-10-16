@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using UtauTtsBuilder.Services;
 
 namespace UtauTtsBuilder;
 
@@ -12,6 +13,20 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+
+        // ===== 全局异常捕获 =====
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            var ex = e.ExceptionObject as Exception
+                ?? new Exception(e.ExceptionObject?.ToString() ?? "unknown");
+            Logger.Error("AppDomain", ex);
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            Logger.Error("Task", e.Exception);
+            e.SetObserved();
+        };
 
 #if ANDROID
         // Entry / Picker 去下划线
@@ -31,27 +46,15 @@ public static class MauiProgram
                         global::Android.Graphics.Color.Transparent);
             });
 
-        // Switch 统一样式（track + thumb）
         Microsoft.Maui.Handlers.SwitchHandler.Mapper.AppendToMapping(
             "UnifiedSwitch", (handler, view) =>
             {
-                var ctx = global::Microsoft.Maui.ApplicationModel.Platform.AppContext;
-                if (ctx == null) return;
-
-                // thumb 白色
                 handler.PlatformView.ThumbTintList =
                     global::Android.Content.Res.ColorStateList.ValueOf(
                         global::Android.Graphics.Color.White);
-
-                // track 颜色由 MAUI 的 OnColor 属性控制
-                // 这里只统一 track 的透明度
-                var bg = handler.PlatformView.BackgroundTintList;
-                if (bg == null)
-                {
-                    handler.PlatformView.BackgroundTintList =
-                        global::Android.Content.Res.ColorStateList.ValueOf(
-                            global::Android.Graphics.Color.Transparent);
-                }
+                handler.PlatformView.BackgroundTintList =
+                    global::Android.Content.Res.ColorStateList.ValueOf(
+                        global::Android.Graphics.Color.Transparent);
             });
 
         Microsoft.Maui.Handlers.RadioButtonHandler.Mapper.AppendToMapping(

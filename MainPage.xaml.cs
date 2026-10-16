@@ -31,6 +31,7 @@ public partial class MainPage : ContentPage
         ThemeService.Apply();
         ApplyLocalization();
         LoadEngines();
+        Logger.Info("MainPage", "Appeared");
 
         if (!_updateChecked)
         {
@@ -126,6 +127,7 @@ public partial class MainPage : ContentPage
     // ===== 顶部「⋯」菜单 =====
     private async void OnMoreClicked(object sender, EventArgs e)
     {
+        Logger.Info("MainPage", "More menu opened");
         var actions = new List<string>();
         var keys = new Dictionary<string, string>();
 
@@ -140,6 +142,9 @@ public partial class MainPage : ContentPage
 
         var sUpdate = Loc.T("update_check_now");
         actions.Add(sUpdate); keys[sUpdate] = "update";
+
+        var sLog = Loc.T("log_viewer_title");
+        actions.Add(sLog); keys[sLog] = "view_log";
 
         var sClear = Loc.T("settings_clear_cache");
         actions.Add(sClear); keys[sClear] = "clear_cache";
@@ -164,6 +169,10 @@ public partial class MainPage : ContentPage
 
             case "update":
                 await ManualCheckUpdateAsync();
+                break;
+
+            case "view_log":
+                await Navigation.PushAsync(new LogViewerPage());
                 break;
 
             case "clear_cache":
@@ -743,6 +752,7 @@ public partial class MainPage : ContentPage
     // ===== 生成 =====
     private async void OnBuildClicked(object sender, EventArgs e)
     {
+        Logger.Info("MainPage", "Build clicked");
         var name = NameEntry.Text?.Trim();
         var customPath = OutputDirEntry.Text?.Trim();
         var author = AuthorEntry.Text?.Trim();

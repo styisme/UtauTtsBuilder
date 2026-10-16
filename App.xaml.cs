@@ -7,13 +7,14 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        Logger.Init();
+        Logger.Info("App", "App constructed");
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        // 启动时应用主题（可能在设置里被改过）
         ThemeService.Apply();
-
+        Logger.Info("App", "Window created");
         return new Window(new NavigationPage(new MainPage()));
     }
 }

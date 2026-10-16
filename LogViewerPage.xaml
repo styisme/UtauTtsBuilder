@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.LogViewerPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              Padding="8,12,16,12">
+            <Button Grid.Column="0"
+                    Text="←"
+                    FontSize="20"
+                    WidthRequest="44" HeightRequest="44"
+                    CornerRadius="22" Padding="0"
+                    BackgroundColor="Transparent"
+                    TextColor="{DynamicResource Md3OnSurface}"
+                    Clicked="OnBackClicked" />
+            <Label Grid.Column="1"
+                   x:Name="TitleLabel"
+                   FontSize="18" FontAttributes="Bold"
+                   TextColor="{DynamicResource Md3OnSurface}"
+                   VerticalOptions="Center"
+                   Margin="4,0,0,0" />
+        </Grid>
+
+        <Border Grid.Row="1"
+                Margin="12,0,12,0"
+                Padding="0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 12">
+            <Border.BackgroundColor>
+                <StaticResource Key="Md3SurfaceContainer" />
+            </Border.BackgroundColor>
+            <ScrollView x:Name="LogScroll" Padding="12">
+                <Label x:Name="LogLabel"
+                       FontFamily="Monospace"
+                       FontSize="11"
+                       LineHeight="1.3"
+                       TextColor="{DynamicResource Md3OnSurface}"
+                       LineBreakMode="WordWrap" />
+            </ScrollView>
+        </Border>
+
+        <VerticalStackLayout Grid.Row="2" Padding="12,12,12,24" Spacing="8">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Grid.Column="0"
+                        x:Name="RefreshBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnRefreshClicked" />
+                <Button Grid.Column="1"
+                        x:Name="ShareBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnShareClicked" />
+            </Grid>
+            <Button x:Name="ClearBtn"
+                    Style="{StaticResource Md3OutlinedButton}"
+                    Clicked="OnClearClicked" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

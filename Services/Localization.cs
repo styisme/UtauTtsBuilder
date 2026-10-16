@@ -234,6 +234,7 @@ public static class Loc
         ["btn_ok_only"] = ("好", "OK", "OK"),
         // ===== Settings 追加 =====
         ["settings_ui_style"] = ("UI 风格", "UI style", "UI スタイル"),
+        ["settings_voicebank_list"] = ("管理已生成的声库", "Manage voicebanks", "生成済み音源の管理"),
         ["settings_about"] = ("关于", "About", "このアプリについて"),
         ["about_title"] = ("关于", "About", "このアプリについて"),
         ["about_github"] = ("GitHub 仓库", "GitHub repository", "GitHub リポジトリ"),
@@ -290,5 +291,12 @@ public static class Loc
         ["settings_clear_cache_confirm"] = ("确定清除应用缓存？不会删除已生成的声库。", "Clear app cache? Voicebanks won't be deleted.", "アプリのキャッシュをクリアしますか？生成済みの音源は削除されません。"),
         ["settings_clear_cache_done"] = ("缓存已清除", "Cache cleared", "キャッシュをクリアしました"),
         ["batch_desc_fmt"] = ("将为 {0} 个引擎各生成一个声库（名称会附加引擎后缀）", "Generate a voicebank for each of {0} engines (name gets an engine suffix)", "{0} 個のエンジンごとに音源を生成します（名前にエンジン名が付きます）"),
+        // ===== Log Viewer =====
+        ["log_viewer_title"] = ("运行日志", "Runtime log", "実行ログ"),
+        ["log_refresh"] = ("刷新", "Refresh", "更新"),
+        ["log_share"] = ("分享日志文件", "Share log file", "ログを共有"),
+        ["log_clear"] = ("清空日志", "Clear log", "ログをクリア"),
+        ["log_clear_confirm"] = ("确定清空当前日志？", "Clear current log?", "現在のログをクリアしますか？"),
+        ["log_exported_fmt"] = ("日志已导出", "Log exported", "ログを出力しました"),
     };
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using UtauTtsBuilder.Services;
 
 namespace UtauTtsBuilder.Services;
 
@@ -40,6 +41,7 @@ public static class UpdateService
     {
         try
         {
+            Logger.Info("Update", "Checking for updates...");
             var json = await Http.GetStringAsync(RepoApi);
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
@@ -52,7 +54,13 @@ public static class UpdateService
             var latest = tag.TrimStart('v', 'V');
             var current = CurrentVersion;
 
-            if (string.IsNullOrEmpty(latest)) return null;
+            Logger.Info("Update", $"Latest: {latest}, Current: {current}");
+
+            if (string.IsNullOrEmpty(latest))
+            {
+                Logger.Warn("Update", "Empty tag");
+                return null;
+            }
 
             var hasUpdate = CompareVersion(latest, current) > 0
                 && latest != SkippedVersion;
@@ -68,8 +76,9 @@ public static class UpdateService
                 HasUpdate = hasUpdate
             };
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.Error("Update", ex);
             return null;
         }
     }
