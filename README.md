@@ -4,7 +4,7 @@
 > Generate UTAU voicebanks from Android system TTS engines with one tap.
 
 [![Build Android APK](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml/badge.svg)](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml)
-[![Version](https://img.shields.io/badge/version-1.1.0-512BD4)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.1-512BD4)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
@@ -30,7 +30,7 @@
 
 ## 📦 最新版本
 
-当前版本：**v1.1.0**
+当前版本：**v1.1.1**
 
 完整版本历史请见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -42,10 +42,10 @@
 - 🗣️ **多 TTS 引擎** — 自动枚举设备上所有已安装的本地 TTS 引擎
 - ☁️ **云端 TTS** — 支持 Azure Speech 和 Google Cloud TTS（需自备 API Key）
 - 🌏 **多语言声库** — 日语、中文、英语
-  - 日语：CV (69) / CVVC (133) / VCV (105)
+  - 日语：CV (129) / CVVC (194) / VCV (105)
   - 中文：CV (78) / CVVC (203) / VCV (130)
   - 英语：CV (93)
-- 📥 **自定义音素表** — 导入任意 `.txt` 音素表（支持 `别名=文件名` / `别名,文件名` / `别名 文件名` 格式）
+- 📥 **自定义音素表** — 导入任意 `.txt` 音素表
 - 🎨 **自定义图标与立绘** — 从相册选择，自动打包进声库
 - 🗜️ **自动 ZIP 打包** + 系统分享
 - 🤖 **全自动 oto.ini** — 基于音频时长的启发式参数估算
@@ -113,8 +113,9 @@
 
 ```
 {声库名}/
-├── a.wav              # 音节音频（44.1kHz / 16-bit / Mono）
-├── ka.wav
+├── あ.wav             # 音节音频（44.1kHz / 16-bit / Mono）
+├── か.wav
+├── ちゃ.wav           # 拗音
 ├── a_k.wav            # CVVC 过渡音
 ├── ...
 ├── oto.ini            # UTAU 参数文件（Shift-JIS）

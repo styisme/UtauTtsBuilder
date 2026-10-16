@@ -204,8 +204,8 @@ public static class Loc
         ["lang_auto"] = ("自动", "Auto", "自動"),
 
         // ===== Reclist 显示名 =====
-        ["reclist_ja_cv"] = ("日语 CV (69 音节)", "Japanese CV (69)", "日本語 CV（69 音節）"),
-        ["reclist_ja_cvvc"] = ("日语 CVVC (133 音节)", "Japanese CVVC (133)", "日本語 CVVC（133 音節）"),
+        ["reclist_ja_cv"] = ("日语 CV (129 音节)", "Japanese CV (129)", "日本語 CV（129 音節）"),
+        ["reclist_ja_cvvc"] = ("日语 CVVC (194 音节)", "Japanese CVVC (194)", "日本語 CVVC（194 音節）"),
         ["reclist_ja_vcv"] = ("日语 VCV (105 音节)", "Japanese VCV (105)", "日本語 VCV（105 音節）"),
         ["reclist_zh_cv"] = ("中文 CV (78 音节)", "Chinese CV (78)", "中国語 CV（78 音節）"),
         ["reclist_zh_cvvc"] = ("中文 CVVC (203 音节)", "Chinese CVVC (203)", "中国語 CVVC（203 音節）"),
