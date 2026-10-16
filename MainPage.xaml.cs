@@ -273,7 +273,7 @@ public partial class MainPage : ContentPage
     }
 
     // ===== 音质对比 =====
-    private async Task RunCompareAsync()
+        private async Task RunCompareAsync()
     {
         if (_enginePackages.Count == 0)
         {
@@ -282,7 +282,6 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        // 只合成单个音节做对比
         var engines = new List<(string Package, string Label)>();
         for (int i = 0; i < _enginePackages.Count; i++)
             engines.Add((_enginePackages[i], _engineLabels[i]));
@@ -299,18 +298,19 @@ public partial class MainPage : ContentPage
         {
             var progress = new Progress<string>(m => StatusLabel.Text = m);
             var results = await QuickCompareService.RunAsync(
-                engines, "あ", langCode, speechRate, pitch, progress);
+                engines, "\u3042", langCode, speechRate, pitch, progress);
 
             var ok = results.Where(r => r.WavPath != null).ToList();
             if (ok.Count == 0)
             {
+                var sb = new System.Text.StringBuilder();
+                sb.Append("All engines failed:");
+                foreach (var r in results)
+                {
+                    sb.Append('\n').Append(r.EngineLabel).Append(": ").Append(r.Error);
+                }
                 await DialogService.ShowAlertAsync(this,
-                    Loc.T("compare_title"),
-                    "All engines failed:
-" + string.Join("
-",
-                        results.Select(r => $"{r.EngineLabel}: {r.Error}")),
-                    Loc.T("btn_ok"));
+                    Loc.T("compare_title"), sb.ToString(), Loc.T("btn_ok"));
                 return;
             }
 
@@ -337,6 +337,7 @@ public partial class MainPage : ContentPage
             StatusLabel.Text = "";
         }
     }
+
 
     // ===== 检查更新 =====
     private async Task CheckUpdateAsync()
