@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.AboutPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,40" Spacing="20">
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                <Button Grid.Column="0"
+                        Text="←"
+                        FontSize="20"
+                        WidthRequest="44" HeightRequest="44"
+                        CornerRadius="22" Padding="0"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Md3OnSurface}"
+                        Clicked="OnBackClicked" />
+                <Label Grid.Column="1"
+                       x:Name="TopTitle"
+                       FontSize="20" FontAttributes="Bold"
+                       TextColor="{DynamicResource Md3OnSurface}"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <!-- ===== 图标 + 名称 + 版本 ===== -->
+            <VerticalStackLayout Spacing="8" Margin="0,16,0,0"
+                                 HorizontalOptions="Center">
+                <Image Source="appicon.svg"
+                       WidthRequest="96" HeightRequest="96"
+                       HorizontalOptions="Center" />
+                <Label x:Name="AppNameLabel"
+                       FontSize="22" FontAttributes="Bold"
+                       TextColor="{DynamicResource Md3OnSurface}"
+                       HorizontalOptions="Center" />
+                <Label x:Name="VersionLabel"
+                       FontSize="13"
+                       TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- ===== 描述 ===== -->
+            <Border Style="{StaticResource Md3Card}">
+                <Label x:Name="DescLabel"
+                       FontSize="14"
+                       TextColor="{DynamicResource Md3OnSurface}"
+                       LineBreakMode="WordWrap" />
+            </Border>
+
+            <!-- ===== 链接 ===== -->
+            <VerticalStackLayout Spacing="8">
+                <Button x:Name="GithubBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnGithubClicked" />
+                <Button x:Name="LicenseBtn"
+                        Style="{StaticResource Md3TonalButton}"
+                        Clicked="OnLicenseClicked" />
+            </VerticalStackLayout>
+
+            <!-- ===== 开源许可摘要 ===== -->
+            <Border Style="{StaticResource Md3Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label x:Name="LicenseTitle"
+                           FontSize="13" FontAttributes="Bold"
+                           TextColor="{DynamicResource Md3OnSurface}" />
+                    <Label x:Name="LicenseBody"
+                           FontSize="12"
+                           TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label x:Name="CopyrightLabel"
+                   FontSize="11"
+                   TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                   HorizontalOptions="Center"
+                   Margin="0,8,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

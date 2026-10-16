@@ -15,11 +15,16 @@ public partial class SettingsPage : ContentPage
 
     private void ApplyLocalization()
     {
-        Title = Loc.T("settings_title");
+        TopTitle.Text = Loc.T("settings_title");
         AppearanceLabel.Text = Loc.T("settings_appearance");
         ThemeAutoBtn.Text = Loc.T("settings_theme_auto");
         ThemeLightBtn.Text = Loc.T("settings_theme_light");
         ThemeDarkBtn.Text = Loc.T("settings_theme_dark");
+        UiStyleLabel.Text = Loc.T("settings_ui_style");
+        StyleMd3Btn.Text = "Material 3";
+        StyleHarmonyBtn.Text = "鸿蒙 HarmonyOS";
+        StyleUwpBtn.Text = "Windows UWP";
+        StyleA4Btn.Text = "Android 4 Holo";
         LanguageSectionLabel.Text = Loc.T("settings_language");
         LangAutoBtn.Text = Loc.T("lang_auto");
         LangZhBtn.Text = "中文";
@@ -29,6 +34,7 @@ public partial class SettingsPage : ContentPage
         DynamicTitle.Text = Loc.T("settings_use_wallpaper");
         DynamicHint.Text = Loc.T("settings_dynamic_hint");
         DynamicFooter.Text = Loc.T("settings_dynamic_footer");
+        AboutBtn.Text = Loc.T("settings_about");
     }
 
     private void LoadCurrent()
@@ -37,15 +43,25 @@ public partial class SettingsPage : ContentPage
         DynamicSwitch.IsToggled = ThemeService.DynamicColorEnabled;
         _initializing = false;
         RefreshThemeButtons();
+        RefreshUiStyleButtons();
         RefreshLanguageButtons();
     }
 
     private void RefreshThemeButtons()
     {
-        var mode = ThemeService.Mode;
-        SetSelected(ThemeAutoBtn, mode == ThemeMode.Auto);
-        SetSelected(ThemeLightBtn, mode == ThemeMode.Light);
-        SetSelected(ThemeDarkBtn, mode == ThemeMode.Dark);
+        var m = ThemeService.Mode;
+        SetSelected(ThemeAutoBtn, m == ThemeMode.Auto);
+        SetSelected(ThemeLightBtn, m == ThemeMode.Light);
+        SetSelected(ThemeDarkBtn, m == ThemeMode.Dark);
+    }
+
+    private void RefreshUiStyleButtons()
+    {
+        var s = UiStyleService.Style;
+        SetSelected(StyleMd3Btn, s == UiStyle.Md3);
+        SetSelected(StyleHarmonyBtn, s == UiStyle.Harmony);
+        SetSelected(StyleUwpBtn, s == UiStyle.Uwp);
+        SetSelected(StyleA4Btn, s == UiStyle.Android4);
     }
 
     private void RefreshLanguageButtons()
@@ -69,7 +85,7 @@ public partial class SettingsPage : ContentPage
         else
         {
             btn.SetDynamicResource(Button.BackgroundColorProperty, "Md3SurfaceContainer");
-            btn.SetDynamicResource(Button.TextColorProperty, "Md3Primary");
+            btn.SetDynamicResource(Button.TextColorProperty, "Md3OnSurface");
             btn.SetDynamicResource(Button.BorderColorProperty, "Md3Outline");
             btn.BorderWidth = 1;
         }
@@ -84,6 +100,17 @@ public partial class SettingsPage : ContentPage
         RefreshThemeButtons();
     }
 
+    private void OnUiStyleClicked(object sender, EventArgs e)
+    {
+        if (sender == StyleMd3Btn) UiStyleService.Style = UiStyle.Md3;
+        else if (sender == StyleHarmonyBtn) UiStyleService.Style = UiStyle.Harmony;
+        else if (sender == StyleUwpBtn) UiStyleService.Style = UiStyle.Uwp;
+        else if (sender == StyleA4Btn) UiStyleService.Style = UiStyle.Android4;
+
+        ThemeService.Apply();
+        RefreshUiStyleButtons();
+    }
+
     private async void OnLanguageButtonClicked(object sender, EventArgs e)
     {
         if (sender == LangAutoBtn) Loc.Mode = UiLanguage.Auto;
@@ -93,11 +120,8 @@ public partial class SettingsPage : ContentPage
 
         ApplyLocalization();
         RefreshLanguageButtons();
-
-        // 简单提示返回主页后生效
         await DisplayAlertAsync(Loc.T("settings_title"),
-            Loc.T("settings_language") + " ✓",
-            Loc.T("btn_ok"));
+            Loc.T("settings_language") + " ✓", Loc.T("btn_ok"));
     }
 
     private void OnDynamicToggled(object sender, ToggledEventArgs e)
@@ -105,5 +129,15 @@ public partial class SettingsPage : ContentPage
         if (_initializing) return;
         ThemeService.DynamicColorEnabled = e.Value;
         ThemeService.Apply();
+    }
+
+    private async void OnAboutClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new AboutPage());
+    }
+
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
     }
 }

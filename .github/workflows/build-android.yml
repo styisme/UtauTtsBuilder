@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 env:
-  # 强制告诉系统 Android SDK 的位置，省去 Setup Android SDK 步骤
   ANDROID_HOME: /usr/local/lib/android/sdk
   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
@@ -17,6 +16,16 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Extract version from CHANGELOG
+      id: ver
+      run: |
+        VERSION=$(grep -oP '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | head -n1 | sed 's/^## \[//;s/\]$//' || true)
+        if [ -z "$VERSION" ]; then VERSION="0.0.0"; fi
+        BUILD=$(date +%Y%m%d)
+        echo "Version: $VERSION (build $BUILD)"
+        echo "display=$VERSION" >> $GITHUB_OUTPUT
+        echo "code=$BUILD" >> $GITHUB_OUTPUT
 
     - name: Setup .NET 10
       uses: actions/setup-dotnet@v4
@@ -37,13 +46,23 @@ jobs:
       run: dotnet restore
 
     - name: Build Android APK
-      run: dotnet build -f net10.0-android -c Release
+      run: |
+        dotnet build -f net10.0-android -c Release \
+          -p:ApplicationDisplayVersion=${{ steps.ver.outputs.display }} \
+          -p:ApplicationVersion=${{ steps.ver.outputs.code }}
+
+    - name: Rename APK with version
+      run: |
+        mkdir -p artifacts
+        for f in bin/Release/net10.0-android/*.apk; do
+          [ -e "$f" ] || continue
+          base=$(basename "$f" .apk)
+          cp "$f" "artifacts/${base}-v${{ steps.ver.outputs.display }}.apk"
+        done
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: UtauTtsBuilder-APK
-        path: |
-          bin/Release/net10.0-android/*.apk
-          bin/Release/net10.0-android/publish/*.apk
+        path: artifacts/*.apk
         if-no-files-found: warn

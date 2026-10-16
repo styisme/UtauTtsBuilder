@@ -24,7 +24,6 @@ public static class ThemeService
         set => Preferences.Default.Set(KeyDynamic, value);
     }
 
-    /// <summary>考虑 Auto 后实际是否为深色</summary>
     public static bool IsDark
     {
         get
@@ -38,21 +37,25 @@ public static class ThemeService
         }
     }
 
-    /// <summary>把当前主题应用到全局资源字典</summary>
     public static void Apply()
     {
         var dict = Application.Current?.Resources;
         if (dict == null) return;
 
-        bool dark = IsDark;
+        var style = UiStyleService.Style;
 
-        // 1. 先铺基线色板
-        ApplyBaseline(dict, dark);
+        // 非 MD3 风格：直接铺该风格的固定色板
+        if (style != UiStyle.Md3)
+        {
+            UiStyleService.Apply(dict, style);
+            return;
+        }
 
-        // 2. 若启用了动态色，尝试用系统色覆盖
+        // MD3：深浅 + 动态色
+        ApplyBaseline(dict, IsDark);
         if (DynamicColorEnabled)
         {
-            ThemeHelper.TryApplyDynamicColors(dict, dark);
+            ThemeHelper.TryApplyDynamicColors(dict, IsDark);
         }
     }
 
@@ -90,5 +93,8 @@ public static class ThemeService
             dict["Md3OutlineVariant"] = Color.FromArgb("#CAC4D0");
             dict["Md3SurfaceContainer"] = Color.FromArgb("#F3EDF7");
         }
+        dict["UiBtnCorner"] = 28;
+        dict["UiBtnHeight"] = 56;
+        dict["UiBtnSmallHeight"] = 48;
     }
 }

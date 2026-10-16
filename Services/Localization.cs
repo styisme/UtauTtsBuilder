@@ -207,5 +207,23 @@ public static class Loc
         ["reclist_en_cv"] = ("英语 CV (93 音节)", "English CV (93)", "英語 CV（93 音節）"),
         ["reclist_custom_fmt"] = ("自定义: {0}", "Custom: {0}", "カスタム：{0}"),
         ["custom_default_name"] = ("自定义", "Custom", "カスタム"),
+
+        // ===== Settings 追加 =====
+        ["settings_ui_style"] = ("UI 风格", "UI style", "UI スタイル"),
+        ["settings_about"] = ("关于", "About", "このアプリについて"),
+        ["about_title"] = ("关于", "About", "このアプリについて"),
+        ["about_github"] = ("GitHub 仓库", "GitHub repository", "GitHub リポジトリ"),
+        ["about_license"] = ("查看 MIT 协议", "View MIT license", "MIT ライセンスを見る"),
+        ["about_license_title"] = ("MIT License", "MIT License", "MIT License"),
+        ["about_license_body"] = (
+            "本项目使用 MIT 协议发布，允许自由使用、修改和再分发，但需保留版权声明。",
+            "Released under the MIT License. Free to use, modify, and redistribute with attribution.",
+            "MIT ライセンスのもとで公開されています。著作権表示を保持すれば自由に利用・改変・再配布できます。"
+        ),
+        ["about_desc"] = (
+            "UTAU 声库生成器 — 从 Android 系统 TTS 引擎一键生成 UTAU 声库。\n\n支持日语 CV / CVVC / VCV、中文 CV、英语 CV，以及自定义音素表导入。",
+            "UTAU Voicebank Builder — Generate UTAU voicebanks from Android system TTS engines.\n\nSupports Japanese CV / CVVC / VCV, Chinese CV, English CV, and custom reclist import.",
+            "UTAU 音源ライブラリ生成 — Android のシステム TTS から UTAU 音源を生成します。\n\n日本語 CV / CVVC / VCV、中国語 CV、英語 CV、カスタム音素表の読み込みに対応。"
+        ),
     };
 }

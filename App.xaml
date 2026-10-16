@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
              x:Class="UtauTtsBuilder.App">
     <Application.Resources>
         <ResourceDictionary>
 
-            <!-- ===== MD3 基线色板 ===== -->
+            <!-- ===== 色板 fallback ===== -->
             <Color x:Key="Md3Primary">#6750A4</Color>
             <Color x:Key="Md3OnPrimary">#FFFFFF</Color>
             <Color x:Key="Md3PrimaryContainer">#EADDFF</Color>
@@ -20,19 +21,14 @@
             <Color x:Key="Md3OutlineVariant">#CAC4D0</Color>
             <Color x:Key="Md3SurfaceContainer">#F3EDF7</Color>
 
-            <!-- ===== 导航栏（统一 SettingsPage 顶栏）===== -->
-            <Style TargetType="NavigationPage">
-                <Setter Property="BarBackgroundColor"
-                        Value="{DynamicResource Md3SurfaceContainer}" />
-                <Setter Property="BarTextColor"
-                        Value="{DynamicResource Md3OnSurface}" />
-                <Setter Property="IconColor"
-                        Value="{DynamicResource Md3OnSurface}" />
-            </Style>
+            <!-- ===== 尺寸 fallback ===== -->
+            <sys:Int32 x:Key="UiBtnCorner">28</sys:Int32>
+            <sys:Int32 x:Key="UiBtnHeight">56</sys:Int32>
+            <sys:Int32 x:Key="UiBtnSmallHeight">48</sys:Int32>
 
-            <!-- ===== 排版样式 ===== -->
+            <!-- ===== 布局样式 ===== -->
             <Style x:Key="Md3Headline" TargetType="Label">
-                <Setter Property="FontSize" Value="32" />
+                <Setter Property="FontSize" Value="30" />
                 <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="TextColor" Value="{DynamicResource Md3OnSurface}" />
             </Style>
@@ -77,21 +73,21 @@
             <Style x:Key="Md3FilledButton" TargetType="Button">
                 <Setter Property="BackgroundColor" Value="{DynamicResource Md3Primary}" />
                 <Setter Property="TextColor" Value="{DynamicResource Md3OnPrimary}" />
-                <Setter Property="CornerRadius" Value="28" />
-                <Setter Property="HeightRequest" Value="56" />
-                <Setter Property="FontSize" Value="16" />
+                <Setter Property="CornerRadius" Value="{DynamicResource UiBtnCorner}" />
+                <Setter Property="HeightRequest" Value="{DynamicResource UiBtnHeight}" />
+                <Setter Property="FontSize" Value="15" />
                 <Setter Property="FontAttributes" Value="Bold" />
-                <Setter Property="Padding" Value="24,0" />
+                <Setter Property="Padding" Value="20,0" />
             </Style>
 
             <Style x:Key="Md3TonalButton" TargetType="Button">
                 <Setter Property="BackgroundColor" Value="{DynamicResource Md3SecondaryContainer}" />
                 <Setter Property="TextColor" Value="{DynamicResource Md3OnSecondaryContainer}" />
-                <Setter Property="CornerRadius" Value="24" />
-                <Setter Property="HeightRequest" Value="48" />
+                <Setter Property="CornerRadius" Value="{DynamicResource UiBtnCorner}" />
+                <Setter Property="HeightRequest" Value="{DynamicResource UiBtnSmallHeight}" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontAttributes" Value="Bold" />
-                <Setter Property="Padding" Value="20,0" />
+                <Setter Property="Padding" Value="16,0" />
             </Style>
 
             <Style x:Key="Md3OutlinedButton" TargetType="Button">
@@ -99,10 +95,10 @@
                 <Setter Property="TextColor" Value="{DynamicResource Md3Primary}" />
                 <Setter Property="BorderColor" Value="{DynamicResource Md3Outline}" />
                 <Setter Property="BorderWidth" Value="1" />
-                <Setter Property="CornerRadius" Value="24" />
-                <Setter Property="HeightRequest" Value="48" />
+                <Setter Property="CornerRadius" Value="{DynamicResource UiBtnCorner}" />
+                <Setter Property="HeightRequest" Value="{DynamicResource UiBtnSmallHeight}" />
                 <Setter Property="FontSize" Value="14" />
-                <Setter Property="Padding" Value="20,0" />
+                <Setter Property="Padding" Value="16,0" />
             </Style>
 
         </ResourceDictionary>

@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="456" height="456" viewBox="0 0 456 456">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7C3AED"/>
-      <stop offset="1" stop-color="#512BD4"/>
-    </linearGradient>
-  </defs>
-  <rect width="456" height="456" rx="96" fill="url(#bg)"/>
-  <g fill="#FFFFFF" opacity="0.95">
-    <rect x="80"  y="188" width="22" height="80"  rx="11"/>
-    <rect x="122" y="148" width="22" height="160" rx="11"/>
-    <rect x="164" y="108" width="22" height="240" rx="11"/>
-    <rect x="206" y="168" width="22" height="120" rx="11"/>
-    <rect x="248" y="128" width="22" height="200" rx="11"/>
-    <rect x="290" y="168" width="22" height="120" rx="11"/>
-    <rect x="332" y="188" width="22" height="80"  rx="11"/>
-  </g>
+  <rect width="456" height="456" fill="#512BD4"/>
 </svg>
