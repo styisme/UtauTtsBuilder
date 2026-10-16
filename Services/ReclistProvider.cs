@@ -78,13 +78,17 @@ public static class ReclistProvider
 
     private static string SanitizeFileName(string alias)
     {
+        // 只移除文件系统非法字符，保留假名/汉字
         var sb = new System.Text.StringBuilder();
+        var invalid = System.IO.Path.GetInvalidFileNameChars();
         foreach (var c in alias)
         {
-            if (char.IsLetterOrDigit(c)) sb.Append(c);
-            else if (c == ' ' || c == '_') sb.Append('_');
+            bool bad = false;
+            foreach (var ic in invalid)
+                if (c == ic) { bad = true; break; }
+            if (!bad) sb.Append(c);
         }
-        var result = sb.ToString();
+        var result = sb.ToString().Trim();
         return string.IsNullOrEmpty(result) ? "entry" : result;
     }
 
@@ -101,13 +105,14 @@ public static class ReclistProvider
         _ => ConvertCvDict(JapaneseCvReclist.CvList)
     };
 
+    // ★ 关键改动：FileName = Alias（假名），而不是 dict 里的罗马音
     private static List<ReclistEntry> ConvertCvDict(Dictionary<string, string> dict)
     {
         return dict.Select(kv => new ReclistEntry
         {
             Alias = kv.Key,
             TtsText = kv.Key,
-            FileName = kv.Value,
+            FileName = SanitizeFileName(kv.Key),
             IsTransition = false
         }).ToList();
     }
@@ -147,7 +152,8 @@ public static class ReclistProvider
         foreach (var kv in JapaneseCvReclist.CvList)
             list.Add(new ReclistEntry
             {
-                Alias = kv.Key, TtsText = kv.Key, FileName = kv.Value, IsTransition = false
+                Alias = kv.Key, TtsText = kv.Key,
+                FileName = SanitizeFileName(kv.Key), IsTransition = false
             });
 
         var vowels = new (string Roma, string Kana)[]
@@ -158,11 +164,12 @@ public static class ReclistProvider
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
+                var alias = v1.Roma + " " + v2.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v1.Roma + " " + v2.Roma,
+                    Alias = alias,
                     TtsText = v1.Kana + v2.Kana,
-                    FileName = v1.Roma + "_" + v2.Roma,
+                    FileName = SanitizeFileName(alias),
                     IsTransition = true
                 });
             }
@@ -173,13 +180,16 @@ public static class ReclistProvider
         };
         foreach (var v in vowels)
             foreach (var c in cons)
+            {
+                var alias = v.Roma + " " + c.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v.Roma + " " + c.Roma,
+                    Alias = alias,
                     TtsText = v.Kana + c.Kana,
-                    FileName = v.Roma + "_" + c.Roma,
+                    FileName = SanitizeFileName(alias),
                     IsTransition = true
                 });
+            }
         return list;
     }
 
@@ -196,27 +206,30 @@ public static class ReclistProvider
         foreach (var v in vowels)
             list.Add(new ReclistEntry
             {
-                Alias = v.Roma, TtsText = v.Kana, FileName = v.Roma, IsTransition = false
+                Alias = v.Roma, TtsText = v.Kana,
+                FileName = SanitizeFileName(v.Kana), IsTransition = false
             });
         list.Add(new ReclistEntry
         {
-            Alias = "n", TtsText = "ん", FileName = "n", IsTransition = false
+            Alias = "n", TtsText = "ん",
+            FileName = "ん", IsTransition = false
         });
         foreach (var v in vowels)
             list.Add(new ReclistEntry
             {
                 Alias = v.Roma + " n", TtsText = v.Kana + "ん",
-                FileName = v.Roma + "_n", IsTransition = true
+                FileName = SanitizeFileName(v.Roma + "_n"), IsTransition = true
             });
         foreach (var v1 in vowels)
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
+                var alias = v1.Roma + " " + v2.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v1.Roma + " " + v2.Roma,
+                    Alias = alias,
                     TtsText = v1.Kana + v2.Kana,
-                    FileName = v1.Roma + "_" + v2.Roma,
+                    FileName = SanitizeFileName(alias),
                     IsTransition = true
                 });
             }
@@ -229,13 +242,16 @@ public static class ReclistProvider
         };
         foreach (var c in rows)
             foreach (var v in vowels)
+            {
+                var alias = v.Roma + " " + c.Roma + "a";
                 list.Add(new ReclistEntry
                 {
-                    Alias = v.Roma + " " + c.Roma + "a",
+                    Alias = alias,
                     TtsText = v.Kana + c.Kana,
-                    FileName = v.Roma + "_" + c.Roma + "a",
+                    FileName = SanitizeFileName(alias),
                     IsTransition = true
                 });
+            }
         return list;
     }
 
@@ -245,46 +261,43 @@ public static class ReclistProvider
     private static List<ReclistEntry> BuildChineseCvvc()
     {
         var list = new List<ReclistEntry>();
-
-        // CV：78 条（复用已有中文 CV）
         foreach (var kv in ChineseCvList)
             list.Add(new ReclistEntry
             {
-                Alias = kv.Key, TtsText = kv.Key, FileName = kv.Value, IsTransition = false
+                Alias = kv.Key, TtsText = kv.Key,
+                FileName = SanitizeFileName(kv.Key), IsTransition = false
             });
 
-        // 5 个基础韵母
         var vowels = new (string Roma, string Kana)[]
         {
             ("a", "啊"), ("o", "哦"), ("e", "鹅"), ("i", "衣"), ("u", "乌")
         };
-
-        // VV 过渡：20 条
         foreach (var v1 in vowels)
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
+                var alias = v1.Roma + " " + v2.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v1.Roma + " " + v2.Roma,
+                    Alias = alias,
                     TtsText = v1.Kana + v2.Kana,
-                    FileName = "zh_" + v1.Roma + "_" + v2.Roma,
+                    FileName = SanitizeFileName("zh_" + alias),
                     IsTransition = true
                 });
             }
-
-        // VC 过渡：5 × 21 = 105 条
         var cons = ChineseConsonants();
         foreach (var v in vowels)
             foreach (var c in cons)
+            {
+                var alias = v.Roma + " " + c.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v.Roma + " " + c.Roma,
+                    Alias = alias,
                     TtsText = v.Kana + c.Kana,
-                    FileName = "zh_" + v.Roma + "_" + c.Roma,
+                    FileName = SanitizeFileName("zh_" + alias),
                     IsTransition = true
                 });
-
+            }
         return list;
     }
 
@@ -298,45 +311,41 @@ public static class ReclistProvider
         {
             ("a", "啊"), ("o", "哦"), ("e", "鹅"), ("i", "衣"), ("u", "乌")
         };
-
-        // 单独韵母
         foreach (var v in vowels)
             list.Add(new ReclistEntry
             {
                 Alias = v.Roma, TtsText = v.Kana,
-                FileName = "zh_" + v.Roma, IsTransition = false
+                FileName = SanitizeFileName("zh_" + v.Kana), IsTransition = false
             });
-
-        // VV 过渡
         foreach (var v1 in vowels)
             foreach (var v2 in vowels)
             {
                 if (v1.Roma == v2.Roma) continue;
+                var alias = v1.Roma + " " + v2.Roma;
                 list.Add(new ReclistEntry
                 {
-                    Alias = v1.Roma + " " + v2.Roma,
+                    Alias = alias,
                     TtsText = v1.Kana + v2.Kana,
-                    FileName = "zh_" + v1.Roma + "_" + v2.Roma,
+                    FileName = SanitizeFileName("zh_" + alias),
                     IsTransition = true
                 });
             }
-
-        // 声母行过渡：21 × 5 = 105 条
         var cons = ChineseConsonants();
         foreach (var c in cons)
             foreach (var v in vowels)
+            {
+                var alias = v.Roma + " " + c.Roma + "a";
                 list.Add(new ReclistEntry
                 {
-                    Alias = v.Roma + " " + c.Roma + "a",
+                    Alias = alias,
                     TtsText = v.Kana + c.Kana,
-                    FileName = "zh_" + v.Roma + "_" + c.Roma + "a",
+                    FileName = SanitizeFileName("zh_" + alias),
                     IsTransition = true
                 });
-
+            }
         return list;
     }
 
-    // 中文 21 个声母，每个用 a 元音音节的汉字作代表
     private static (string Roma, string Kana)[] ChineseConsonants() => new (string, string)[]
     {
         ("b", "八"), ("p", "怕"), ("m", "妈"), ("f", "发"),

@@ -27,7 +27,7 @@ public static class OtoGenerator
     public static OtoEntry GenerateEntry(
         string wavPath, string alias, bool isTransition = false)
     {
-        double duration = WavProcessor.GetDurationMs(wavPath);
+        double durationMs = WavProcessor.GetDurationMs(wavPath);
 
         double offset;
         double consonant;
@@ -37,30 +37,28 @@ public static class OtoGenerator
 
         if (isTransition)
         {
-            // CVVC 过渡别名：音频是两个音节（如 あか），只取前段
-            offset = 20;
-            consonant = Math.Max(50, duration * 0.15);
-            cutoff = -Math.Max(80, duration * 0.5);  // 从末尾倒推一半
-            preutterance = Math.Max(20, consonant - 15);
-            overlap = Math.Max(10, preutterance * 0.6);
+            offset = 10;
+            consonant = Math.Max(40, durationMs * 0.20);
+            // cutoff 用正数：从固定点往后算
+            cutoff = Math.Max(60, durationMs * 0.55);
+            preutterance = Math.Max(15, consonant - 10);
+            overlap = Math.Max(10, preutterance * 0.5);
         }
         else if (IsVowelOrN(alias))
         {
-            // 元音 / ん / 单字符别名
-            offset = 30;
-            consonant = Math.Max(50, duration * 0.15);
-            cutoff = -Math.Max(50, duration * 0.2);
-            preutterance = Math.Max(20, consonant - 20);
+            offset = 8;
+            consonant = Math.Max(40, durationMs * 0.15);
+            cutoff = Math.Max(50, durationMs * 0.25);
+            preutterance = Math.Max(15, consonant - 10);
             overlap = Math.Max(10, preutterance * 0.5);
         }
         else
         {
-            // CV
-            offset = 30;
-            consonant = Math.Max(80, duration * 0.35);
-            cutoff = -Math.Max(50, duration * 0.2);
-            preutterance = Math.Max(30, consonant - 40);
-            overlap = Math.Max(15, preutterance * 0.5);
+            offset = 15;
+            consonant = Math.Max(60, durationMs * 0.30);
+            cutoff = Math.Max(60, durationMs * 0.30);
+            preutterance = Math.Max(20, consonant - 20);
+            overlap = Math.Max(10, preutterance * 0.5);
         }
 
         return new OtoEntry
