@@ -15,6 +15,8 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         ApplyLocalization();
+        UpdateSpeedLabel();
+        UpdatePitchLabel();
     }
 
     protected override void OnAppearing()
@@ -34,6 +36,9 @@ public partial class MainPage : ContentPage
         ClearReclistBtn.Text = Loc.T("btn_clear");
         SecEngineLabel.Text = Loc.T("sec_engine");
         RefreshBtn.Text = Loc.T("btn_refresh_engines");
+        SecTuneLabel.Text = Loc.T("sec_tune");
+        SpeedLabel.Text = Loc.T("label_speed");
+        PitchLabel.Text = Loc.T("label_pitch");
         SecNameLabel.Text = Loc.T("sec_name");
         NameEntry.Placeholder = Loc.T("ph_name");
         SecIconLabel.Text = Loc.T("sec_icon");
@@ -50,6 +55,7 @@ public partial class MainPage : ContentPage
         HintOutputLabel.Text = Loc.T("hint_output");
         OutputDirEntry.Placeholder = Loc.T("ph_output");
         ZipLabel.Text = Loc.T("zip_checkbox");
+        SkipExistingLabel.Text = Loc.T("skip_existing_checkbox");
         BuildButton.Text = Loc.T("btn_build");
 
         if (string.IsNullOrEmpty(_iconPath)) IconLabel.Text = Loc.T("not_selected");
@@ -133,6 +139,27 @@ public partial class MainPage : ContentPage
     private async void OnSettingsClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new SettingsPage());
+    }
+
+    // ===== 语速 / 音高 =====
+    private void OnSpeedChanged(object sender, ValueChangedEventArgs e)
+    {
+        UpdateSpeedLabel();
+    }
+
+    private void OnPitchChanged(object sender, ValueChangedEventArgs e)
+    {
+        UpdatePitchLabel();
+    }
+
+    private void UpdateSpeedLabel()
+    {
+        SpeedValue.Text = SpeedSlider.Value.ToString("F2") + "×";
+    }
+
+    private void UpdatePitchLabel()
+    {
+        PitchValue.Text = PitchSlider.Value.ToString("F2") + "×";
     }
 
     private async void OnImportReclistClicked(object sender, EventArgs e)
@@ -254,23 +281,45 @@ public partial class MainPage : ContentPage
     private async void OnPickIconClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync(Loc.T("btn_pick_icon"));
-        if (p != null) { _iconPath = p; IconLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p)); }
+        if (p != null)
+        {
+            _iconPath = p;
+            IconLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p));
+            try
+            {
+                IconPreview.Source = ImageSource.FromFile(p);
+            }
+            catch { }
+        }
     }
 
     private void OnClearIconClicked(object sender, EventArgs e)
     {
-        _iconPath = null; IconLabel.Text = Loc.T("not_selected");
+        _iconPath = null;
+        IconLabel.Text = Loc.T("not_selected");
+        IconPreview.Source = null;
     }
 
     private async void OnPickPortraitClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync(Loc.T("btn_pick_portrait"));
-        if (p != null) { _portraitPath = p; PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p)); }
+        if (p != null)
+        {
+            _portraitPath = p;
+            PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(p));
+            try
+            {
+                PortraitPreview.Source = ImageSource.FromFile(p);
+            }
+            catch { }
+        }
     }
 
     private void OnClearPortraitClicked(object sender, EventArgs e)
     {
-        _portraitPath = null; PortraitLabel.Text = Loc.T("not_selected");
+        _portraitPath = null;
+        PortraitLabel.Text = Loc.T("not_selected");
+        PortraitPreview.Source = null;
     }
 
     private async Task<string?> PickImageAsync(string title)
@@ -357,10 +406,14 @@ public partial class MainPage : ContentPage
 
         var language = GetSelectedLanguage();
         var engine = _engines[engineIdx];
+        float speechRate = (float)SpeedSlider.Value;
+        float pitch = (float)PitchSlider.Value;
+        bool skipExisting = SkipExistingCheckBox.IsChecked;
 
         var progress = new Progress<string>(msg => { StatusLabel.Text = msg; });
         var builder = new VoicebankBuilder(
-            engine.Name, progress, language, _iconPath, _portraitPath, author);
+            engine.Name, progress, language, _iconPath, _portraitPath, author,
+            speechRate, pitch, skipExisting);
 
         ProgressBar.IsVisible = true;
         BuildButton.IsEnabled = false;

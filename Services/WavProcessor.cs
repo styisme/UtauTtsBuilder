@@ -77,8 +77,45 @@ public static class WavProcessor
         var samples = DecodeToFloat(info.RawData, info.BitsPerSample, info.Channels);
         var mono = ToMono(samples, info.Channels);
         var resampled = Resample(mono, info.SampleRate, TargetSampleRate);
+
+        // 首尾静音裁剪
+        resampled = TrimSilence(resampled, TargetSampleRate);
+
         Normalize(resampled, 0.89f);
         WriteWav16(outputPath, resampled, TargetSampleRate, TargetChannels);
+    }
+
+    /// <summary>
+    /// 裁掉首尾的静音段，两端各留 8ms padding。
+    /// 阈值 0.005f（约 -46dB），足够保留轻微呼吸音。
+    /// </summary>
+    public static float[] TrimSilence(float[] samples, int sampleRate)
+    {
+        const float threshold = 0.005f;
+        int padding = (int)(sampleRate * 0.008); // 8ms
+
+        int start = 0;
+        while (start < samples.Length && Math.Abs(samples[start]) < threshold)
+            start++;
+
+        int end = samples.Length - 1;
+        while (end > start && Math.Abs(samples[end]) < threshold)
+            end--;
+
+        // 全是静音，直接返回（返回短静音，防止空数组崩溃）
+        if (start >= end)
+        {
+            var tiny = new float[Math.Max(padding * 2, 100)];
+            return tiny;
+        }
+
+        start = Math.Max(0, start - padding);
+        end = Math.Min(samples.Length - 1, end + padding);
+
+        int len = end - start + 1;
+        var result = new float[len];
+        Array.Copy(samples, start, result, 0, len);
+        return result;
     }
 
     private static float[] DecodeToFloat(byte[] data, int bits, int channels)

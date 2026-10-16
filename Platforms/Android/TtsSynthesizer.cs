@@ -9,15 +9,23 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
     private readonly string? _enginePackage;
     private readonly object _lock = new();
     private string _pendingLanguage = "ja-JP";
+    private float _pendingSpeechRate = 0.85f;
+    private float _pendingPitch = 1.0f;
 
     public TtsSynthesizer(string? enginePackage = null)
     {
         _enginePackage = enginePackage;
     }
 
-    public async Task InitializeAsync(string languageCode = "ja-JP")
+    public async Task InitializeAsync(
+        string languageCode = "ja-JP",
+        float speechRate = 0.85f,
+        float pitch = 1.0f)
     {
         _pendingLanguage = languageCode;
+        _pendingSpeechRate = Math.Clamp(speechRate, 0.5f, 1.5f);
+        _pendingPitch = Math.Clamp(pitch, 0.5f, 2.0f);
+
         _initTcs = new TaskCompletionSource<bool>();
         _tts = new AndroidTts(
             global::Microsoft.Maui.ApplicationModel.Platform.AppContext,
@@ -49,8 +57,8 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
                     "该 TTS 引擎不支持语言 " + _pendingLanguage + "，请换引擎或语言"));
                 return;
             }
-            _tts.SetSpeechRate(0.85f);
-            _tts.SetPitch(1.0f);
+            _tts.SetSpeechRate(_pendingSpeechRate);
+            _tts.SetPitch(_pendingPitch);
             _initTcs?.TrySetResult(true);
         }
         else

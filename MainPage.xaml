@@ -27,6 +27,7 @@
                         Clicked="OnSettingsClicked" />
             </Grid>
 
+            <!-- ① 语言 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecLangLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
@@ -48,6 +49,7 @@
                 </Grid>
             </VerticalStackLayout>
 
+            <!-- ② 引擎 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
@@ -62,6 +64,56 @@
                         Clicked="OnRefreshClicked" />
             </VerticalStackLayout>
 
+            <!-- ②b 语速 / 音高 -->
+            <VerticalStackLayout Spacing="10">
+                <Label x:Name="SecTuneLabel" Style="{StaticResource Md3TitleMedium}" />
+
+                <Border Style="{StaticResource Md3Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label x:Name="SpeedLabel" Grid.Column="0"
+                                   FontSize="14"
+                                   TextColor="{DynamicResource Md3OnSurface}"
+                                   VerticalOptions="Center" />
+                            <Label x:Name="SpeedValue" Grid.Column="1"
+                                   FontSize="14" FontAttributes="Bold"
+                                   TextColor="{DynamicResource Md3Primary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Slider x:Name="SpeedSlider"
+                                Minimum="0.5" Maximum="1.5"
+                                Value="0.85"
+                                MinimumTrackColor="{DynamicResource Md3Primary}"
+                                MaximumTrackColor="{DynamicResource Md3OutlineVariant}"
+                                ThumbColor="{DynamicResource Md3Primary}"
+                                ValueChanged="OnSpeedChanged" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource Md3Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label x:Name="PitchLabel" Grid.Column="0"
+                                   FontSize="14"
+                                   TextColor="{DynamicResource Md3OnSurface}"
+                                   VerticalOptions="Center" />
+                            <Label x:Name="PitchValue" Grid.Column="1"
+                                   FontSize="14" FontAttributes="Bold"
+                                   TextColor="{DynamicResource Md3Primary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        <Slider x:Name="PitchSlider"
+                                Minimum="0.5" Maximum="2.0"
+                                Value="1.0"
+                                MinimumTrackColor="{DynamicResource Md3Primary}"
+                                MaximumTrackColor="{DynamicResource Md3OutlineVariant}"
+                                ThumbColor="{DynamicResource Md3Primary}"
+                                ValueChanged="OnPitchChanged" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- ③ 名称 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecNameLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
@@ -72,15 +124,29 @@
                 </Border>
             </VerticalStackLayout>
 
+            <!-- ④ 图标 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecIconLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Label x:Name="HintIconLabel"
                        Style="{StaticResource Md3BodySmall}"
                        Margin="4,-4,0,0" />
-                <Label x:Name="IconLabel"
-                       FontSize="13"
-                       TextColor="{DynamicResource Md3OnSurfaceVariant}"
-                       Margin="4,0,0,0" />
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Grid.Column="0"
+                            Stroke="{DynamicResource Md3Outline}"
+                            StrokeThickness="1"
+                            WidthRequest="64" HeightRequest="64"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{DynamicResource Md3SurfaceVariant}">
+                        <Image x:Name="IconPreview"
+                               Aspect="AspectFit"
+                               WidthRequest="64" HeightRequest="64" />
+                    </Border>
+                    <Label Grid.Column="1"
+                           x:Name="IconLabel"
+                           FontSize="13"
+                           TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                           VerticalOptions="Center" />
+                </Grid>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickIconBtn"
@@ -93,15 +159,29 @@
                 </Grid>
             </VerticalStackLayout>
 
+            <!-- ⑤ 立绘 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecPortraitLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Label x:Name="HintPortraitLabel"
                        Style="{StaticResource Md3BodySmall}"
                        Margin="4,-4,0,0" />
-                <Label x:Name="PortraitLabel"
-                       FontSize="13"
-                       TextColor="{DynamicResource Md3OnSurfaceVariant}"
-                       Margin="4,0,0,0" />
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Grid.Column="0"
+                            Stroke="{DynamicResource Md3Outline}"
+                            StrokeThickness="1"
+                            WidthRequest="64" HeightRequest="96"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{DynamicResource Md3SurfaceVariant}">
+                        <Image x:Name="PortraitPreview"
+                               Aspect="AspectFit"
+                               WidthRequest="64" HeightRequest="96" />
+                    </Border>
+                    <Label Grid.Column="1"
+                           x:Name="PortraitLabel"
+                           FontSize="13"
+                           TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                           VerticalOptions="Center" />
+                </Grid>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="PickPortraitBtn"
@@ -114,6 +194,7 @@
                 </Grid>
             </VerticalStackLayout>
 
+            <!-- ⑥ 作者 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecAuthorLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Border Style="{StaticResource Md3TextField}">
@@ -124,6 +205,7 @@
                 </Border>
             </VerticalStackLayout>
 
+            <!-- ⑦ 输出路径 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecOutputLabel" Style="{StaticResource Md3TitleMedium}" />
                 <Label x:Name="HintOutputLabel"
@@ -137,12 +219,26 @@
                 </Border>
             </VerticalStackLayout>
 
+            <!-- ZIP 复选框 -->
             <Border Style="{StaticResource Md3Card}">
                 <HorizontalStackLayout Spacing="12">
                     <CheckBox x:Name="ZipCheckBox"
                               IsChecked="True"
                               Color="{DynamicResource Md3Primary}" />
                     <Label x:Name="ZipLabel"
+                           FontSize="14"
+                           TextColor="{DynamicResource Md3OnSurface}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- 跳过已存在 -->
+            <Border Style="{StaticResource Md3Card}">
+                <HorizontalStackLayout Spacing="12">
+                    <CheckBox x:Name="SkipExistingCheckBox"
+                              IsChecked="True"
+                              Color="{DynamicResource Md3Primary}" />
+                    <Label x:Name="SkipExistingLabel"
                            FontSize="14"
                            TextColor="{DynamicResource Md3OnSurface}"
                            VerticalOptions="Center" />

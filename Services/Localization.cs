@@ -102,6 +102,10 @@ public static class Loc
         ["btn_clear"] = ("清除", "Clear", "クリア"),
 
         ["sec_engine"] = ("② TTS 引擎", "② TTS engine", "② TTS エンジン"),
+        ["sec_tune"] = ("语音调优", "Speech tuning", "音声チューニング"),
+        ["label_speed"] = ("语速", "Speed", "話速"),
+        ["label_pitch"] = ("音高", "Pitch", "ピッチ"),
+        ["skip_existing_checkbox"] = ("跳过已存在的音频（断点续传）", "Skip existing audio (resume)", "既存の音声をスキップ（レジューム）"),
         ["btn_refresh_engines"] = ("刷新引擎列表", "Refresh engine list", "エンジン一覧を更新"),
 
         ["sec_name"] = ("③ 声库名称", "③ Voicebank name", "③ 音源名"),
