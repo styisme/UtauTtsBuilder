@@ -8,18 +8,31 @@
     <ScrollView>
         <VerticalStackLayout Padding="16,24,16,48" Spacing="24">
 
-            <Grid ColumnDefinitions="*,Auto" Margin="4,8,0,0">
+            <!-- 顶部标题 + 按钮 -->
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="4,8,0,0" ColumnSpacing="4">
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                     <Label x:Name="TitleLabel" Style="{StaticResource Md3Headline}" />
                     <Label x:Name="SubtitleLabel"
                            Style="{StaticResource Md3BodySmall}"
                            Margin="4,0,0,0" />
                 </VerticalStackLayout>
+
                 <Button Grid.Column="1"
+                        x:Name="MoreBtn"
+                        Text="⋯"
+                        FontSize="22"
+                        WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                        Padding="0"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource Md3OnSurfaceVariant}"
+                        VerticalOptions="Start"
+                        Clicked="OnMoreClicked" />
+
+                <Button Grid.Column="2"
                         x:Name="SettingsBtn"
                         Text="⚙"
                         FontSize="22"
-                        WidthRequest="48" HeightRequest="48" CornerRadius="24"
+                        WidthRequest="44" HeightRequest="44" CornerRadius="22"
                         Padding="0"
                         BackgroundColor="Transparent"
                         TextColor="{DynamicResource Md3OnSurfaceVariant}"
@@ -30,7 +43,6 @@
             <!-- ① 语言 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecLangLabel" Style="{StaticResource Md3TitleMedium}" />
-
                 <Border Style="{StaticResource Md3TextField}" Padding="16,14">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Grid.Column="0"
@@ -48,7 +60,6 @@
                         </Border.GestureRecognizers>
                     </Grid>
                 </Border>
-
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Button Grid.Column="0"
                             x:Name="ImportReclistBtn"
@@ -65,7 +76,6 @@
             <!-- ② 引擎 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
-
                 <Border Style="{StaticResource Md3TextField}" Padding="16,14">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Grid.Column="0"
@@ -83,7 +93,6 @@
                         </Border.GestureRecognizers>
                     </Grid>
                 </Border>
-
                 <Button x:Name="RefreshBtn"
                         Style="{StaticResource Md3TonalButton}"
                         Clicked="OnRefreshClicked" />
@@ -92,7 +101,6 @@
             <!-- 语音调优 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecTuneLabel" Style="{StaticResource Md3TitleMedium}" />
-
                 <Border Style="{StaticResource Md3Card}">
                     <VerticalStackLayout Spacing="10">
                         <Grid ColumnDefinitions="*,Auto">

@@ -281,5 +281,14 @@ public static class Loc
         ["compare_text_ph"] = ("测试文本（默认: あ）", "Text (default: あ)", "テキスト（既定: あ）"),
         ["compare_result_title"] = ("对比结果", "Comparison result", "比較結果"),
         ["compare_playing_fmt"] = ("正在播放: {0}", "Playing: {0}", "再生中: {0}"),
+        ["more_menu_title"] = ("更多", "More", "その他"),
+        ["update_check_now"] = ("检查更新", "Check for updates", "更新を確認"),
+        ["update_checking"] = ("正在检查更新...", "Checking for updates...", "更新を確認中..."),
+        ["update_check_failed"] = ("检查失败，请稍后再试", "Check failed, try later", "確認に失敗しました。後でもう一度お試しください"),
+        ["update_latest_fmt"] = ("已是最新版本 ({0})", "Already latest ({0})", "最新版です（{0}）"),
+        ["settings_clear_cache"] = ("清除缓存", "Clear cache", "キャッシュをクリア"),
+        ["settings_clear_cache_confirm"] = ("确定清除应用缓存？不会删除已生成的声库。", "Clear app cache? Voicebanks won't be deleted.", "アプリのキャッシュをクリアしますか？生成済みの音源は削除されません。"),
+        ["settings_clear_cache_done"] = ("缓存已清除", "Cache cleared", "キャッシュをクリアしました"),
+        ["batch_desc_fmt"] = ("将为 {0} 个引擎各生成一个声库（名称会附加引擎后缀）", "Generate a voicebank for each of {0} engines (name gets an engine suffix)", "{0} 個のエンジンごとに音源を生成します（名前にエンジン名が付きます）"),
     };
 }

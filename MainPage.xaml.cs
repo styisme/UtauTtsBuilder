@@ -15,6 +15,7 @@ public partial class MainPage : ContentPage
     private List<VoicebankLanguage> _languageList = new();
     private int _selectedLanguageIndex = 0;
     private int _selectedEngineIndex = 0;
+    private bool _updateChecked = false;
 
     public MainPage()
     {
@@ -30,6 +31,12 @@ public partial class MainPage : ContentPage
         ThemeService.Apply();
         ApplyLocalization();
         LoadEngines();
+
+        if (!_updateChecked)
+        {
+            _updateChecked = true;
+            _ = CheckUpdateAsync();
+        }
     }
 
     private void ApplyLocalization()
@@ -99,7 +106,7 @@ public partial class MainPage : ContentPage
             _languageList[_selectedLanguageIndex]);
     }
 
-    // ===== 自定义选择页封装 =====
+    // ===== 自定义选择页 =====
     private async Task<int> ShowSelectionAsync(string title, List<string> items, int current)
     {
         var page = new SelectionPage(title, items, current);
@@ -116,6 +123,285 @@ public partial class MainPage : ContentPage
         return await task;
     }
 
+    // ===== 顶部「⋯」菜单 =====
+    private async void OnMoreClicked(object sender, EventArgs e)
+    {
+        var actions = new List<string>();
+        var keys = new Dictionary<string, string>();
+
+        var sList = Loc.T("settings_voicebank_list");
+        actions.Add(sList); keys[sList] = "list";
+
+        var sBatch = Loc.T("batch_title");
+        actions.Add(sBatch); keys[sBatch] = "batch";
+
+        var sCompare = Loc.T("compare_title");
+        actions.Add(sCompare); keys[sCompare] = "compare";
+
+        var sUpdate = Loc.T("update_check_now");
+        actions.Add(sUpdate); keys[sUpdate] = "update";
+
+        var sClear = Loc.T("settings_clear_cache");
+        actions.Add(sClear); keys[sClear] = "clear_cache";
+
+        var choice = await ShowActionSheetAsync(Loc.T("more_menu_title"), actions);
+        if (choice == null) return;
+        if (!keys.TryGetValue(choice, out var action)) return;
+
+        switch (action)
+        {
+            case "list":
+                await Navigation.PushAsync(new VoicebankListPage());
+                break;
+
+            case "batch":
+                await RunBatchAsync();
+                break;
+
+            case "compare":
+                await RunCompareAsync();
+                break;
+
+            case "update":
+                await ManualCheckUpdateAsync();
+                break;
+
+            case "clear_cache":
+                await ClearCacheAsync();
+                break;
+        }
+    }
+
+    // ===== 声库列表 =====
+    private async Task OpenListAsync()
+    {
+        await Navigation.PushAsync(new VoicebankListPage());
+    }
+
+    // ===== 批量生成 =====
+    private async Task RunBatchAsync()
+    {
+        if (_enginePackages.Count == 0)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_tip"), Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
+            return;
+        }
+
+        var baseName = NameEntry.Text?.Trim();
+        if (string.IsNullOrEmpty(baseName)) baseName = "voicebank";
+
+        bool ok = await DialogService.ShowConfirmAsync(this,
+            Loc.T("batch_title"),
+            Loc.F("batch_desc_fmt", _enginePackages.Count),
+            Loc.T("batch_start"),
+            Loc.T("action_cancel"));
+        if (!ok) return;
+
+        var baseDir = Path.Combine(GetExternalRoot(), "Download", "UtauTtsBuilder");
+        var reqs = new List<BatchBuildRequest>();
+
+        for (int i = 0; i < _enginePackages.Count; i++)
+        {
+            reqs.Add(new BatchBuildRequest
+            {
+                Name = baseName + "_" + SanitizeFileName(_engineLabels[i]),
+                EnginePackage = _enginePackages[i],
+                EngineLabel = _engineLabels[i],
+                Language = GetSelectedLanguage(),
+                SpeechRate = (float)SpeedSlider.Value,
+                Pitch = (float)PitchSlider.Value,
+                IconPath = _iconPath,
+                PortraitPath = _portraitPath,
+                Author = AuthorEntry.Text?.Trim(),
+                BaseOutputDir = baseDir
+            });
+        }
+
+        ProgressBar.IsVisible = true;
+        BuildButton.IsEnabled = false;
+
+        try
+        {
+            var progress = new Progress<string>(m => StatusLabel.Text = m);
+            var results = await BatchBuildService.RunAsync(reqs, progress);
+
+            int success = results.Count(r => r.Contains("✅"));
+            int failed = results.Count - success;
+            var msg = Loc.F("batch_result_fmt", success, failed)
+                + "\n\n" + string.Join("\n", results);
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("batch_title"), msg, Loc.T("btn_ok"));
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+        }
+        finally
+        {
+            ProgressBar.IsVisible = false;
+            BuildButton.IsEnabled = true;
+        }
+    }
+
+    // ===== 音质对比 =====
+    private async Task RunCompareAsync()
+    {
+        if (_enginePackages.Count == 0)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_tip"), Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
+            return;
+        }
+
+        var tmp = Path.Combine(FileSystem.CacheDirectory, "compare_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmp);
+
+        var actions = new List<string>();
+        var paths = new List<string>();
+        var language = GetSelectedLanguage();
+        float speechRate = (float)SpeedSlider.Value;
+        float pitch = (float)PitchSlider.Value;
+
+        ProgressBar.IsVisible = true;
+        BuildButton.IsEnabled = false;
+
+        try
+        {
+            for (int i = 0; i < _enginePackages.Count; i++)
+            {
+                StatusLabel.Text = $"[{i + 1}/{_enginePackages.Count}] "
+                    + _engineLabels[i];
+
+                var tmpDir = Path.Combine(tmp, "e" + i);
+                Directory.CreateDirectory(tmpDir);
+
+                try
+                {
+                    var b = new VoicebankBuilder(
+                        _enginePackages[i],
+                        new Progress<string>(_ => { }),
+                        VoicebankLanguage.Japanese, null, null, null,
+                        speechRate, pitch, false);
+                    await b.BuildAsync(tmpDir, "cmp");
+
+                    var f = Directory.GetFiles(tmpDir, "*.wav").FirstOrDefault();
+                    if (f != null)
+                    {
+                        actions.Add(_engineLabels[i]);
+                        paths.Add(f);
+                    }
+                }
+                catch { }
+            }
+
+            if (actions.Count == 0)
+            {
+                await DialogService.ShowAlertAsync(this,
+                    Loc.T("compare_title"), "No audio generated", Loc.T("btn_ok"));
+                return;
+            }
+
+            var choice = await ShowActionSheetAsync(Loc.T("compare_result_title"), actions);
+            if (choice == null) return;
+            var idx = actions.IndexOf(choice);
+            if (idx >= 0)
+            {
+                await AudioPreviewer.PlayAsync(paths[idx], choice);
+            }
+        }
+        finally
+        {
+            ProgressBar.IsVisible = false;
+            BuildButton.IsEnabled = true;
+            StatusLabel.Text = "";
+        }
+    }
+
+    // ===== 检查更新 =====
+    private async Task CheckUpdateAsync()
+    {
+        var info = await UpdateService.CheckAsync();
+        if (info == null || !info.HasUpdate) return;
+
+        bool go = await DialogService.ShowConfirmAsync(this,
+            Loc.T("update_title"),
+            Loc.F("update_message_fmt", info.CurrentVersion, info.LatestVersion),
+            Loc.T("btn_update_now"),
+            Loc.T("btn_update_later"));
+
+        if (go)
+        {
+            try { await Launcher.Default.OpenAsync(info.ReleaseUrl); }
+            catch { }
+        }
+    }
+
+    private async Task ManualCheckUpdateAsync()
+    {
+        StatusLabel.Text = Loc.T("update_checking");
+        var info = await UpdateService.CheckAsync();
+        StatusLabel.Text = "";
+
+        if (info == null)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("update_title"), Loc.T("update_check_failed"), Loc.T("btn_ok"));
+            return;
+        }
+
+        if (!info.HasUpdate)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("update_title"),
+                Loc.F("update_latest_fmt", info.CurrentVersion),
+                Loc.T("btn_ok"));
+            return;
+        }
+
+        bool go = await DialogService.ShowConfirmAsync(this,
+            Loc.T("update_title"),
+            Loc.F("update_message_fmt", info.CurrentVersion, info.LatestVersion),
+            Loc.T("btn_update_now"),
+            Loc.T("btn_update_later"));
+
+        if (go)
+        {
+            try { await Launcher.Default.OpenAsync(info.ReleaseUrl); }
+            catch { }
+        }
+    }
+
+    // ===== 清缓存 =====
+    private async Task ClearCacheAsync()
+    {
+        bool ok = await DialogService.ShowConfirmAsync(this,
+            Loc.T("settings_clear_cache"),
+            Loc.T("settings_clear_cache_confirm"),
+            Loc.T("btn_clear_action"),
+            Loc.T("action_cancel"));
+        if (!ok) return;
+
+        try
+        {
+            var cacheDir = FileSystem.CacheDirectory;
+            foreach (var dir in Directory.GetDirectories(cacheDir))
+            {
+                try { Directory.Delete(dir, true); } catch { }
+            }
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("settings_clear_cache"),
+                Loc.T("settings_clear_cache_done"), Loc.T("btn_ok"));
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+        }
+    }
+
+    // ===== 语言选择 =====
     private async void OnLanguageTapped(object sender, EventArgs e)
     {
         var titles = _languageList
@@ -132,12 +418,13 @@ public partial class MainPage : ContentPage
         }
     }
 
+    // ===== 引擎选择 =====
     private async void OnEngineTapped(object sender, EventArgs e)
     {
         if (_engineLabels.Count == 0)
         {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_tip"),
-                Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_tip"), Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
             return;
         }
 
@@ -223,10 +510,7 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void OnRefreshClicked(object sender, EventArgs e)
-    {
-        LoadEngines();
-    }
+    private void OnRefreshClicked(object sender, EventArgs e) => LoadEngines();
 
     private async void OnSettingsClicked(object sender, EventArgs e)
     {
@@ -242,6 +526,7 @@ public partial class MainPage : ContentPage
     private void UpdatePitchLabel()
         => PitchValue.Text = PitchSlider.Value.ToString("F2") + "×";
 
+    // ===== 导入自定义音素表 =====
     private async void OnImportReclistClicked(object sender, EventArgs e)
     {
         try
@@ -260,7 +545,8 @@ public partial class MainPage : ContentPage
             var reclist = ParseReclist(content, out var langFromFile);
             if (reclist.Count == 0)
             {
-                await DialogService.ShowAlertAsync(this, Loc.T("title_parse_failed"),
+                await DialogService.ShowAlertAsync(this,
+                    Loc.T("title_parse_failed"),
                     Loc.T("msg_parse_failed"), Loc.T("btn_ok"));
                 return;
             }
@@ -268,7 +554,6 @@ public partial class MainPage : ContentPage
             string ttsLang = langFromFile;
             if (string.IsNullOrEmpty(ttsLang))
             {
-                // ★ 用自定义 ActionSheet 替代 DisplayActionSheet
                 var sJa = Loc.T("lang_ja_jp");
                 var sZh = Loc.T("lang_zh_cn");
                 var sEn = Loc.T("lang_en_us");
@@ -285,25 +570,33 @@ public partial class MainPage : ContentPage
             string name = Path.GetFileNameWithoutExtension(result.FileName);
             if (string.IsNullOrEmpty(name)) name = Loc.T("custom_default_name");
 
+            // 预览
+            var pv = new ReclistPreviewPage(result.FileName, reclist, ttsLang);
+            var pvTask = pv.WaitResultAsync();
+            await Navigation.PushAsync(pv);
+            if (!await pvTask) return;
+
             ReclistProvider.SaveCustomReclist(name, ttsLang, reclist);
             ApplyLocalization();
             _selectedLanguageIndex = _languageList.Count - 1;
             LanguageValueLabel.Text = ReclistProvider.GetDisplayName(
                 _languageList[_selectedLanguageIndex]);
 
-            await DialogService.ShowAlertAsync(this, Loc.T("title_import_success"),
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_import_success"),
                 Loc.F("msg_import_success_fmt", name, reclist.Count, ttsLang),
                 Loc.T("btn_ok"));
         }
         catch (Exception ex)
         {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_import_failed"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_import_failed"), ex.Message, Loc.T("btn_ok"));
         }
     }
 
     private async void OnClearReclistClicked(object sender, EventArgs e)
     {
-        bool ok = await DialogService.ShowConfirmAsync(this, 
+        bool ok = await DialogService.ShowConfirmAsync(this,
             Loc.T("title_clear_reclist"),
             Loc.T("msg_clear_reclist"),
             Loc.T("btn_clear_action"),
@@ -349,6 +642,7 @@ public partial class MainPage : ContentPage
         return result;
     }
 
+    // ===== 图标 =====
     private async void OnPickIconClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync(Loc.T("btn_pick_icon"));
@@ -367,6 +661,7 @@ public partial class MainPage : ContentPage
         IconPreview.Source = null;
     }
 
+    // ===== 立绘 =====
     private async void OnPickPortraitClicked(object sender, EventArgs e)
     {
         var p = await PickImageAsync(Loc.T("btn_pick_portrait"));
@@ -409,7 +704,8 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_pick_image_failed"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_pick_image_failed"), ex.Message, Loc.T("btn_ok"));
             return null;
         }
     }
@@ -444,6 +740,7 @@ public partial class MainPage : ContentPage
         return name.Trim();
     }
 
+    // ===== 生成 =====
     private async void OnBuildClicked(object sender, EventArgs e)
     {
         var name = NameEntry.Text?.Trim();
@@ -453,17 +750,9 @@ public partial class MainPage : ContentPage
         if (_selectedEngineIndex < 0 || _selectedEngineIndex >= _enginePackages.Count
             || string.IsNullOrEmpty(name))
         {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_tip"),
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_tip"),
                 Loc.T("msg_select_engine_and_name"), Loc.T("btn_ok"));
-            return;
-        }
-
-        string outputDir = ResolveOutputDir(name, customPath);
-        try { Directory.CreateDirectory(outputDir); }
-        catch (Exception ex)
-        {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_cannot_create_dir"),
-                ex.Message, Loc.T("btn_ok"));
             return;
         }
 
@@ -472,6 +761,25 @@ public partial class MainPage : ContentPage
         float speechRate = (float)SpeedSlider.Value;
         float pitch = (float)PitchSlider.Value;
         bool skipExisting = SkipExistingCheckBox.IsChecked;
+
+        // 预估时间弹窗
+        var est = EstimateService.Estimate(language, enginePackage);
+        var reclist = ReclistProvider.GetReclist(language);
+        bool go = await DialogService.ShowConfirmAsync(this,
+            Loc.T("btn_build"),
+            Loc.F("estimate_confirm_fmt", name, reclist.Count,
+                EstimateService.Format(est)),
+            Loc.T("btn_ok"), Loc.T("action_cancel"));
+        if (!go) return;
+
+        string outputDir = ResolveOutputDir(name, customPath);
+        try { Directory.CreateDirectory(outputDir); }
+        catch (Exception ex)
+        {
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_cannot_create_dir"), ex.Message, Loc.T("btn_ok"));
+            return;
+        }
 
         var progress = new Progress<string>(msg => { StatusLabel.Text = msg; });
         var builder = new VoicebankBuilder(
@@ -502,11 +810,20 @@ public partial class MainPage : ContentPage
                 }
             }
 
+            // 生成预览图
+            try
+            {
+                var wavs = Directory.GetFiles(outputDir, "*.wav").Length;
+                await PreviewImageGenerator.GenerateAsync(outputDir, name, wavs, _iconPath);
+            }
+            catch { }
+
             await ShowCompletionMenuAsync(outputDir, name, zipPath);
         }
         catch (Exception ex)
         {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+            await DialogService.ShowAlertAsync(this,
+                Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
         }
         finally
         {
@@ -516,7 +833,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-    // ===== 完成后的操作菜单（自定义 ActionSheet）=====
     private async Task ShowCompletionMenuAsync(string outputDir, string name, string? zipPath)
     {
         var otoPath = Path.Combine(outputDir, "oto.ini");
@@ -525,6 +841,9 @@ public partial class MainPage : ContentPage
 
         var actions = new List<string>();
         var keyMap = new Dictionary<string, string>();
+
+        var sPreview = Loc.T("action_view_preview");
+        actions.Add(sPreview); keyMap[sPreview] = "preview";
 
         if (hasOto)
         {
@@ -546,6 +865,10 @@ public partial class MainPage : ContentPage
 
         switch (action)
         {
+            case "preview":
+                await Navigation.PushAsync(new PreviewImagePage(outputDir, name));
+                break;
+
             case "edit_oto":
                 try
                 {
@@ -557,7 +880,8 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this,
+                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
 
@@ -565,12 +889,14 @@ public partial class MainPage : ContentPage
                 try
                 {
                     var ustPath = await UstTemplateGenerator.GenerateAsync(outputDir, name);
-                    await DialogService.ShowAlertAsync(this, Loc.T("title_done"),
+                    await DialogService.ShowAlertAsync(this,
+                        Loc.T("title_done"),
                         Loc.F("ust_generated_fmt", ustPath), Loc.T("btn_ok"));
                 }
                 catch (Exception ex)
                 {
-                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this,
+                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
 
@@ -585,7 +911,8 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    await DialogService.ShowAlertAsync(this, Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
+                    await DialogService.ShowAlertAsync(this,
+                        Loc.T("title_error"), ex.Message, Loc.T("btn_ok"));
                 }
                 break;
         }
