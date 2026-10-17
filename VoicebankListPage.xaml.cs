@@ -22,7 +22,7 @@ public partial class VoicebankListPage : ContentPage
     private void ApplyLocalization()
     {
         TitleLabel.Text = Loc.T("list_title");
-        RefreshBtn.Text = Loc.T("btn_refresh_engines");
+        RefreshBtn.Text = Loc.T("list_refresh");
     }
 
     private void Reload()

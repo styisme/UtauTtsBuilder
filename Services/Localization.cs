@@ -298,5 +298,18 @@ public static class Loc
         ["log_clear"] = ("清空日志", "Clear log", "ログをクリア"),
         ["log_clear_confirm"] = ("确定清空当前日志？", "Clear current log?", "現在のログをクリアしますか？"),
         ["log_exported_fmt"] = ("日志已导出", "Log exported", "ログを出力しました"),
+        ["list_title"] = ("已生成的声库", "My voicebanks", "生成済みの音源"),
+        ["list_empty"] = ("还没有生成过声库", "No voicebanks yet", "まだ音源がありません"),
+        ["list_empty_hint"] = ("返回主页选好语言和引擎后点「开始生成声库」", "Go back, pick language and engine, then tap Build", "ホームに戻り、言語とエンジンを選んで「音源を生成」をタップ"),
+        ["list_share_zip"] = ("分享 ZIP", "Share ZIP", "ZIP を共有"),
+        ["list_delete"] = ("删除声库", "Delete voicebank", "音源を削除"),
+        ["list_delete_confirm_fmt"] = ("确定删除声库「{0}」？此操作不可撤销。", "Delete voicebank \"{0}\"? This cannot be undone.", "音源「{0}」を削除しますか？元に戻せません。"),
+        ["btn_delete_yes"] = ("删除", "Delete", "削除"),
+        ["list_refresh"] = ("刷新", "Refresh", "更新"),
+        ["update_title"] = ("发现新版本", "Update available", "新しいバージョンがあります"),
+        ["update_message_fmt"] = ("当前版本: {0}\\n最新版本: {1}\\n\\n是否前往下载？", "Current: {0}\\nLatest: {1}\\n\\nOpen download page?", "現在: {0}\\n最新: {1}\\n\\nダウンロードページを開きますか？"),
+        ["btn_update_now"] = ("前往下载", "Download", "ダウンロード"),
+        ["btn_update_skip"] = ("跳过此版本", "Skip", "スキップ"),
+        ["btn_update_later"] = ("稍后", "Later", "後で"),
     };
 }
