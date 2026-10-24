@@ -7,6 +7,7 @@ namespace UtauTtsBuilder;
 public partial class MainPage : ContentPage
 {
     private List<TtsEngineInfo> _localEngines = new();
+    private CrossLingualMode _selectedCrossLang = CrossLingualMode.Native;
     private List<string> _engineLabels = new();
     private List<string> _enginePackages = new();
 
