@@ -765,7 +765,6 @@ public partial class MainPage : ContentPage
     // ===== 生成 =====
 
     // ===== 跨语种转换 =====
-    private CrossLingualMode _selectedCrossLang = CrossLingualMode.Native;
 
     private async void OnCrossLangTapped(object sender, EventArgs e)
     {
