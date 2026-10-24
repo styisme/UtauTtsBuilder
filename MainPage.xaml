@@ -98,6 +98,28 @@
                         Clicked="OnRefreshClicked" />
             </VerticalStackLayout>
 
+            <!-- 跨语种 -->
+            <VerticalStackLayout Spacing="10">
+                <Label x:Name="SecCrossLangLabel" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3TextField}" Padding="16,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               x:Name="CrossLangValueLabel"
+                               FontSize="15"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label Grid.Column="1"
+                               Text="▾"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCrossLangTapped" />
+                        </Border.GestureRecognizers>
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
             <!-- 语音调优 -->
             <VerticalStackLayout Spacing="10">
                 <Label x:Name="SecTuneLabel" Style="{StaticResource Md3TitleMedium}" />

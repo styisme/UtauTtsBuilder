@@ -34,6 +34,11 @@ public partial class SettingsPage : ContentPage
         DynamicTitle.Text = Loc.T("settings_use_wallpaper");
         DynamicHint.Text = Loc.T("settings_dynamic_hint");
         DynamicFooter.Text = Loc.T("settings_dynamic_footer");
+        
+        AdvancedLabel.Text = Loc.T("settings_advanced");
+        ForceBuildTitle.Text = Loc.T("settings_force_build");
+        ForceBuildHint.Text = Loc.T("settings_force_build_hint");
+
         CloudBtn.Text = Loc.T("settings_cloud");
         AboutBtn.Text = Loc.T("settings_about");
     }
@@ -42,6 +47,7 @@ public partial class SettingsPage : ContentPage
     {
         _initializing = true;
         DynamicSwitch.IsToggled = ThemeService.DynamicColorEnabled;
+        ForceBuildSwitch.IsToggled = AppSettings.ForceBuild;
         _initializing = false;
         RefreshThemeButtons();
         RefreshUiStyleButtons();
@@ -80,14 +86,12 @@ public partial class SettingsPage : ContentPage
         {
             btn.SetDynamicResource(Button.BackgroundColorProperty, "Md3Primary");
             btn.SetDynamicResource(Button.TextColorProperty, "Md3OnPrimary");
-            btn.SetDynamicResource(Button.BorderColorProperty, "Md3Primary");
             btn.BorderWidth = 0;
         }
         else
         {
             btn.SetDynamicResource(Button.BackgroundColorProperty, "Md3SurfaceContainer");
             btn.SetDynamicResource(Button.TextColorProperty, "Md3OnSurface");
-            btn.SetDynamicResource(Button.BorderColorProperty, "Md3Outline");
             btn.BorderWidth = 1;
         }
     }
@@ -138,18 +142,13 @@ public partial class SettingsPage : ContentPage
         await ApplyThemeWithAnimation();
     }
 
-    private async void OnCloudSettingsClicked(object sender, EventArgs e)
+    private void OnForceBuildToggled(object sender, ToggledEventArgs e)
     {
-        await Navigation.PushAsync(new CloudSettingsPage());
+        if (_initializing) return;
+        AppSettings.ForceBuild = e.Value;
     }
 
-    private async void OnAboutClicked(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new AboutPage());
-    }
-
-    private async void OnBackClicked(object sender, EventArgs e)
-    {
-        await Navigation.PopAsync();
-    }
+    private async void OnCloudSettingsClicked(object sender, EventArgs e) => await Navigation.PushAsync(new CloudSettingsPage());
+    private async void OnAboutClicked(object sender, EventArgs e) => await Navigation.PushAsync(new AboutPage());
+    private async void OnBackClicked(object sender, EventArgs e) => await Navigation.PopAsync();
 }

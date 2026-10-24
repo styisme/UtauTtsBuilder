@@ -11,6 +11,7 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
     private string _pendingLanguage = "ja-JP";
     private float _pendingSpeechRate = 0.85f;
     private float _pendingPitch = 1.0f;
+    private bool _forceBuild = false;
 
     public TtsSynthesizer(string? enginePackage = null)
     {
@@ -20,11 +21,13 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
     public async Task InitializeAsync(
         string languageCode = "ja-JP",
         float speechRate = 0.85f,
-        float pitch = 1.0f)
+        float pitch = 1.0f,
+        bool forceBuild = false)
     {
         _pendingLanguage = languageCode;
         _pendingSpeechRate = Math.Clamp(speechRate, 0.5f, 1.5f);
         _pendingPitch = Math.Clamp(pitch, 0.5f, 2.0f);
+        _forceBuild = forceBuild;
 
         _initTcs = new TaskCompletionSource<bool>();
         _tts = new AndroidTts(
@@ -50,15 +53,30 @@ public class TtsSynthesizer : Java.Lang.Object, AndroidTts.IOnInitListener
             };
 
             var result = _tts.SetLanguage(locale);
-            if (result == global::Android.Speech.Tts.LanguageAvailableResult.MissingData ||
-                result == global::Android.Speech.Tts.LanguageAvailableResult.NotSupported)
+            bool supported = result != global::Android.Speech.Tts.LanguageAvailableResult.MissingData &&
+                             result != global::Android.Speech.Tts.LanguageAvailableResult.NotSupported;
+
+            if (!supported)
             {
-                _initTcs?.TrySetException(new Exception(
-                    "该 TTS 引擎不支持语言 " + _pendingLanguage + "，请换引擎或语言"));
-                return;
+                if (_forceBuild)
+                {
+                    Logger.Warn("TTS", "Target lang not supported, forcing build with default locale.");
+                    // 尝试设置为系统默认语言，如果不传则使用引擎默认
+                    _tts.SetLanguage(global::Java.Util.Locale.Default);
+                }
+                else
+                {
+                    _initTcs?.TrySetException(new Exception(
+                        "该 TTS 引擎不支持语言 " + _pendingLanguage + "，请在设置中开启强制制作或换引擎"));
+                    return;
+                }
             }
-            _tts.SetSpeechRate(_pendingSpeechRate);
-            _tts.SetPitch(_pendingPitch);
+            else
+            {
+                _tts.SetSpeechRate(_pendingSpeechRate);
+                _tts.SetPitch(_pendingPitch);
+            }
+            
             _initTcs?.TrySetResult(true);
         }
         else

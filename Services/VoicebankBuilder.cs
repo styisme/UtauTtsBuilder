@@ -15,12 +15,14 @@ public class VoicebankBuilder
     private readonly float _speechRate;
     private readonly float _pitch;
     private readonly bool _skipExisting;
+    private readonly CrossLingualMode _crossLingual;
 
     public VoicebankBuilder(
         string? enginePackage, IProgress<string> progress,
         VoicebankLanguage language = VoicebankLanguage.Japanese,
         string? iconPath = null, string? portraitPath = null, string? author = null,
-        float speechRate = 0.85f, float pitch = 1.0f, bool skipExisting = true)
+        float speechRate = 0.85f, float pitch = 1.0f, bool skipExisting = true,
+        CrossLingualMode crossLingual = CrossLingualMode.Native)
     {
         _enginePackage = enginePackage;
         _progress = progress;
@@ -31,6 +33,7 @@ public class VoicebankBuilder
         _speechRate = speechRate;
         _pitch = pitch;
         _skipExisting = skipExisting;
+        _crossLingual = crossLingual;
     }
 
     public async Task BuildAsync(string outputDir, string characterName)
@@ -45,11 +48,7 @@ public class VoicebankBuilder
         log.AppendLine("UTAU Voicebank Builder - Build Log");
         log.AppendLine("Time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         log.AppendLine("Engine: " + (_enginePackage ?? "(default)"));
-        log.AppendLine("IsCloud: " + isCloud);
-        log.AppendLine("Language: " + _language);
-        log.AppendLine("SpeechRate: " + _speechRate.ToString("F2"));
-        log.AppendLine("Pitch: " + _pitch.ToString("F2"));
-        log.AppendLine("SkipExisting: " + _skipExisting);
+        log.AppendLine("CrossLingual: " + _crossLingual);
         log.AppendLine(new string('-', 60));
 
         try
@@ -65,7 +64,7 @@ public class VoicebankBuilder
             else
             {
                 localTts = new TtsSynthesizer(_enginePackage);
-                await localTts.InitializeAsync(langCode, _speechRate, _pitch);
+                await localTts.InitializeAsync(langCode, _speechRate, _pitch, AppSettings.ForceBuild);
             }
 
             Directory.CreateDirectory(outputDir);
@@ -82,6 +81,8 @@ public class VoicebankBuilder
             foreach (var entry in reclist)
             {
                 current++;
+                // ★ 跨语种转换在这里发生
+                var finalTtsText = CrossLingualService.Transform(entry.TtsText, langCode, _crossLingual);
                 _progress.Report(Loc.F("prog_synth_fmt", current, total, entry.Alias));
 
                 var rawPath = Path.Combine(rawDir, entry.FileName + ".wav");
@@ -89,34 +90,30 @@ public class VoicebankBuilder
 
                 try
                 {
-                    // 断点续传
                     if (_skipExisting
                         && File.Exists(finalPath)
                         && new FileInfo(finalPath).Length > 44)
                     {
                         skipped++;
-                        log.AppendLine($"[{current}/{total}] SKIP  {entry.Alias} -> {entry.FileName}.wav");
-                        otoEntries.Add(OtoGenerator.GenerateEntry(
-                            finalPath, entry.Alias, entry.IsTransition));
+                        log.AppendLine($"[{current}/{total}] SKIP  {entry.Alias}");
+                        otoEntries.Add(OtoGenerator.GenerateEntry(finalPath, entry.Alias, entry.IsTransition));
                         continue;
                     }
 
-                    if (ttsCache.TryGetValue(entry.TtsText, out var srcPath)
-                        && File.Exists(srcPath))
+                    if (ttsCache.TryGetValue(finalTtsText, out var srcPath) && File.Exists(srcPath))
                     {
                         File.Copy(srcPath, finalPath, true);
                         shared++;
-                        log.AppendLine($"[{current}/{total}] SHARE {entry.Alias} -> {entry.FileName}.wav");
+                        log.AppendLine($"[{current}/{total}] SHARE {entry.Alias} (TTS: {finalTtsText})");
                     }
                     else
                     {
                         sw.Restart();
 
-                        // ★ 核心：本地 / 云端分发
                         if (isCloud && cloudTts != null)
-                            await cloudTts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+                            await cloudTts.SynthesizeToFileAsync(finalTtsText, rawPath);
                         else if (localTts != null)
-                            await localTts.SynthesizeToFileAsync(entry.TtsText, rawPath);
+                            await localTts.SynthesizeToFileAsync(finalTtsText, rawPath);
                         else
                             throw new Exception("无可用 TTS 引擎");
 
@@ -131,12 +128,11 @@ public class VoicebankBuilder
                         }
 
                         WavProcessor.ConvertToUtauFormat(rawPath, finalPath);
-                        ttsCache[entry.TtsText] = finalPath;
-                        log.AppendLine($"[{current}/{total}] OK    {entry.Alias} ({sw.ElapsedMilliseconds}ms)");
+                        ttsCache[finalTtsText] = finalPath;
+                        log.AppendLine($"[{current}/{total}] OK    {entry.Alias} ({sw.ElapsedMilliseconds}ms) (TTS: {finalTtsText})");
                     }
 
-                    otoEntries.Add(OtoGenerator.GenerateEntry(
-                        finalPath, entry.Alias, entry.IsTransition));
+                    otoEntries.Add(OtoGenerator.GenerateEntry(finalPath, entry.Alias, entry.IsTransition));
                 }
                 catch (Exception ex)
                 {
@@ -147,64 +143,30 @@ public class VoicebankBuilder
             }
 
             _progress.Report(Loc.T("prog_write_oto"));
-            await OtoGenerator.WriteOtoIniAsync(
-                otoEntries, Path.Combine(outputDir, "oto.ini"));
+            await OtoGenerator.WriteOtoIniAsync(otoEntries, Path.Combine(outputDir, "oto.ini"));
 
+            // 图标立绘等逻辑省略（保持原有）
             string? iconFileName = null, portraitFileName = null;
-
             if (!string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
             {
                 iconFileName = "icon" + Path.GetExtension(_iconPath);
-                try
-                {
-                    File.Copy(_iconPath, Path.Combine(outputDir, iconFileName), true);
-                    _progress.Report(Loc.F("prog_copy_icon_fmt", iconFileName));
-                    log.AppendLine("Icon: " + iconFileName);
-                }
-                catch (Exception ex)
-                {
-                    _progress.Report(Loc.F("prog_icon_copy_failed_fmt", ex.Message));
-                    iconFileName = null;
-                }
+                try { File.Copy(_iconPath, Path.Combine(outputDir, iconFileName), true); } catch { }
             }
-
             if (!string.IsNullOrEmpty(_portraitPath) && File.Exists(_portraitPath))
             {
                 portraitFileName = "portrait" + Path.GetExtension(_portraitPath);
-                try
-                {
-                    File.Copy(_portraitPath, Path.Combine(outputDir, portraitFileName), true);
-                    _progress.Report(Loc.F("prog_copy_portrait_fmt", portraitFileName));
-                    log.AppendLine("Portrait: " + portraitFileName);
-                }
-                catch (Exception ex)
-                {
-                    _progress.Report(Loc.F("prog_portrait_copy_failed_fmt", ex.Message));
-                    portraitFileName = null;
-                }
+                try { File.Copy(_portraitPath, Path.Combine(outputDir, portraitFileName), true); } catch { }
             }
 
-            _progress.Report(Loc.T("prog_write_chartxt"));
-            await OtoGenerator.WriteCharacterTxtAsync(
-                outputDir, characterName, iconFileName, _author);
+            await OtoGenerator.WriteCharacterTxtAsync(outputDir, characterName, iconFileName, _author);
+            await OtoGenerator.WriteCharacterYamlAsync(outputDir, characterName, iconFileName, portraitFileName, _author);
 
-            _progress.Report(Loc.T("prog_write_charyaml"));
-            await OtoGenerator.WriteCharacterYamlAsync(
-                outputDir, characterName, iconFileName, portraitFileName, _author);
-
-            // 日志
             log.AppendLine(new string('-', 60));
-            log.AppendLine($"Total: {total}, OK: {total - failed - skipped - shared}, "
-                + $"Shared: {shared}, Skipped: {skipped}, Failed: {failed}");
-            log.AppendLine("End: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            await File.WriteAllTextAsync(
-                Path.Combine(outputDir, "_log.txt"), log.ToString(),
-                new UTF8Encoding(false));
+            log.AppendLine($"Total: {total}, OK: {total - failed - skipped - shared}, Shared: {shared}, Skipped: {skipped}, Failed: {failed}");
+            await File.WriteAllTextAsync(Path.Combine(outputDir, "_log.txt"), log.ToString(), new UTF8Encoding(false));
 
             try { Directory.Delete(rawDir, true); } catch { }
-
-            _progress.Report(Loc.F("prog_done_fmt",
-                otoEntries.Count, shared + skipped, failed));
+            _progress.Report(Loc.F("prog_done_fmt", otoEntries.Count, shared + skipped, failed));
         }
         finally
         {

@@ -311,5 +311,11 @@ public static class Loc
         ["btn_update_now"] = ("前往下载", "Download", "ダウンロード"),
         ["btn_update_skip"] = ("跳过此版本", "Skip", "スキップ"),
         ["btn_update_later"] = ("稍后", "Later", "後で"),
+        ["settings_advanced"] = ("高级设置", "Advanced", "詳細設定"),
+        ["settings_force_build"] = ("强制制作", "Force build", "強制生成"),
+        ["settings_force_build_hint"] = ("TTS 不支持所选语言时，使用默认语言强制生成", "Use default language if TTS doesn't support target", "対象言語非対応の場合、既定言語で生成します"),
+        ["sec_cross_lang"] = ("跨语种转换", "Cross-lingual", "言語間変換"),
+        ["cross_native"] = ("原生", "Native", "ネイティブ"),
+        ["cross_smart"] = ("智能展示 (自动匹配)", "Smart (auto)", "スマート (自動)"),
     };
 }

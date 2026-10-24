@@ -78,6 +78,7 @@ public partial class MainPage : ContentPage
         else PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_portraitPath));
 
         InitLanguageList();
+        CrossLangValueLabel.Text = CrossLingualService.GetDisplayName(_selectedCrossLang);
     }
 
     private void InitLanguageList()
@@ -805,7 +806,7 @@ public partial class MainPage : ContentPage
         var progress = new Progress<string>(msg => { StatusLabel.Text = msg; });
         var builder = new VoicebankBuilder(
             enginePackage, progress, language, _iconPath, _portraitPath, author,
-            speechRate, pitch, skipExisting);
+            speechRate, pitch, skipExisting, _selectedCrossLang);
 
         ProgressBar.IsVisible = true;
         BuildButton.IsEnabled = false;

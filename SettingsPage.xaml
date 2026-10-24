@@ -7,21 +7,9 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,40" Spacing="20">
-
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
-                <Button Grid.Column="0"
-                        Text="←"
-                        FontSize="20"
-                        WidthRequest="44" HeightRequest="44"
-                        CornerRadius="22" Padding="0"
-                        BackgroundColor="Transparent"
-                        TextColor="{DynamicResource Md3OnSurface}"
-                        Clicked="OnBackClicked" />
-                <Label Grid.Column="1"
-                       x:Name="TopTitle"
-                       FontSize="20" FontAttributes="Bold"
-                       TextColor="{DynamicResource Md3OnSurface}"
-                       VerticalOptions="Center" />
+                <Button Grid.Column="0" Text="←" FontSize="20" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurface}" Clicked="OnBackClicked" />
+                <Label Grid.Column="1" x:Name="TopTitle" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" />
             </Grid>
 
             <!-- 外观 -->
@@ -55,35 +43,28 @@
             <Border Style="{StaticResource Md3Card}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                        <Label x:Name="DynamicTitle" FontSize="14"
-                               TextColor="{DynamicResource Md3OnSurface}" />
-                        <Label x:Name="DynamicHint" FontSize="12"
-                               TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Label x:Name="DynamicTitle" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label x:Name="DynamicHint" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
                     </VerticalStackLayout>
-                    <Switch Grid.Column="1"
-                            x:Name="DynamicSwitch"
-                            OnColor="{DynamicResource Md3Primary}"
-                            Toggled="OnDynamicToggled"
-                            VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="DynamicSwitch" OnColor="{DynamicResource Md3Primary}" Toggled="OnDynamicToggled" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+            <Label x:Name="DynamicFooter" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" Margin="4,0,0,0" />
+
+            <!-- ★ 强制制作 -->
+            <Label x:Name="AdvancedLabel" Style="{StaticResource Md3TitleMedium}" />
+            <Border Style="{StaticResource Md3Card}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                        <Label x:Name="ForceBuildTitle" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label x:Name="ForceBuildHint" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                    </VerticalStackLayout>
+                    <Switch Grid.Column="1" x:Name="ForceBuildSwitch" OnColor="{DynamicResource Md3Primary}" Toggled="OnForceBuildToggled" VerticalOptions="Center" />
                 </Grid>
             </Border>
 
-            <Label x:Name="DynamicFooter"
-                   FontSize="12"
-                   TextColor="{DynamicResource Md3OnSurfaceVariant}"
-                   Margin="4,0,0,0" />
-
-            <!-- 云端 TTS -->
-            <Button x:Name="CloudBtn"
-                    Style="{StaticResource Md3TonalButton}"
-                    Margin="0,8,0,0"
-                    Clicked="OnCloudSettingsClicked" />
-
-            <!-- 关于 -->
-            <Button x:Name="AboutBtn"
-                    Style="{StaticResource Md3OutlinedButton}"
-                    Clicked="OnAboutClicked" />
-
+            <Button x:Name="CloudBtn" Style="{StaticResource Md3TonalButton}" Margin="0,8,0,0" Clicked="OnCloudSettingsClicked" />
+            <Button x:Name="AboutBtn" Style="{StaticResource Md3OutlinedButton}" Clicked="OnAboutClicked" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
