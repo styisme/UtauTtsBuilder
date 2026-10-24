@@ -17,10 +17,89 @@
 - 更多云端 TTS（讯飞在线、阿里云、腾讯云）
 - 内置波形编辑器（手动微调 oto 参数）
 - 图标 / 立绘裁剪工具（内置方形裁剪 + 缩放）
-- 批量生成（一次选多个引擎生成多个声库）
 - 导出为 DiffSinger / NNSVS / ENUNU 格式
-- 试听播放器（内置音频播放界面）
 - 支持 Web（Blazor）
+
+---
+
+## [1.2.0] - 2026-10-24
+
+本次更新是项目在**生产力与可用性**上的重大飞跃，新增了跨语种、批量处理、声库管理、运行时日志及全局异常捕获等核心功能。
+
+### Added
+
+#### 🌍 跨语种与语言强制
+
+- **跨语种转换（Cross-Lingual）**
+  - 主页新增「跨语种转换」下拉框
+  - 支持模式：原生、中→日、日→中、英→日、英→中、日→英、中→英
+  - **智能匹配**：根据当前选择的语言自动推断转换方向
+  - 底层基于罗马音/拼音映射表，将源语言文本转为目标 TTS 支持的字符再合成
+- **强制制作（Force Build）**
+  - 设置页新增「高级设置 → 强制制作」开关
+  - 当目标 TTS 引擎不支持所选语言时，自动回退到系统默认语言强制生成（不再报错中断）
+
+#### 🛠️ 生产力工具
+
+- **多引擎批量生成**
+  - 通过主页「⋯」菜单进入
+  - 勾选多个可用引擎后，一键为每个引擎生成对应的声库（名称自动附加引擎后缀）
+- **声库管理列表（Voicebank List）**
+  - 扫描默认输出目录，列表化展示所有已生成的声库
+  - 显示音节数与占用空间
+  - 支持快捷操作：查看详情、分享 ZIP、编辑 `oto.ini`、生成 UST、删除
+- **音质对比（Quick Compare）**
+  - 快速使用所有可用引擎合成同一个音节，供 A/B 试听对比
+  - 自动处理不支持目标语言的引擎（自动跳过或降级）
+- **生成时长预估**
+  - 点击生成前，弹窗显示当前配置下的音节数与预估耗时
+- **音素表预览**
+  - 导入自定义 `reclist` 时，先展示前 20 条解析结果供确认
+
+#### 📊 日志与诊断
+
+- **全局日志系统（Logger）**
+  - 新增 `Services/Logger.cs`，按日期滚动记录，保留 7 天
+  - 全局捕获 `AppDomain.UnhandledException` 与 `TaskScheduler.UnobservedTaskException`
+  - 主页「⋯」菜单新增「运行日志」入口
+  - 日志页面支持实时刷新、分享文件、清空日志
+- **详细的构建日志**
+  - `_log.txt` 增强：记录每个音节的合成耗时，输出慢/快/平均耗时统计
+  - 附带 `_reference.txt` 导出，列出所有别名对应的 TTS 文本与文件名
+
+#### 🎨 交互与展示
+
+- **自定义弹窗（AlertPage）**
+  - 彻底抛弃系统原生 `DisplayAlert`，改用 MD3 风格的自定义弹窗页面
+  - 支持单按钮、双按钮模式，自动跟随主题与深浅色
+- **波形查看器（WaveformView）**
+  - 声库预览页支持展示单音节音频波形图（基于 C# 纯代码 `GraphicsView` 绘制）
+- **声库预览图生成**
+  - 生成完成后自动在声库目录下创建 `preview.png`
+  - 包含声库名、音节数、日期，自适应深浅色模式
+- **更新检查（Update Service）**
+  - 启动时静默检查 GitHub Releases
+  - 手动触发检查时，弹窗提示当前与最新版本号，支持一键跳转下载
+
+### Fixed
+
+- **导航冲突修复**：`ActionSheetPage` / `SelectionPage` / `AlertPage` 统一改为先 `Pop` 完成动画后再返回结果，解决了"弹窗闪退/卡死"问题。
+- **缺失网络权限**：`AndroidManifest.xml` 补充 `INTERNET` 与 `ACCESS_NETWORK_STATE` 权限，解决更新检查与云端 TTS 失败。
+- **UI 割裂修复**：全局移除了系统 `DisplayActionSheet`、`DisplayAlert`，统一使用 MD3 组件。
+- **本地化文本缺失**：修复了 `Localization.cs` 缺失 key 导致界面上直接显示变量名的问题（如 `list_title`）。
+- **拼接与调用错误**：修复了 `VoicebankBuilder` 中的各种字符串拼接和异步调用冲突。
+
+### Changed
+
+- **多语言与主题检测**：`TtsSynthesizer` 初始化时增加 `forceBuild` 参数。
+- **UI 重构**：主页右上角新增「⋯」更多菜单，集中收纳列表、批量、对比、日志等二级功能。
+- **依赖变更**：清理了部分未使用的库，补充了 `System.Text.Json` 用于更新检查。
+
+### Technical Notes
+
+- 跨语种映射基于 `ReclistProvider` 中的 `ChineseCvList` / `EnglishCvList` / `JapaneseCvReclist` 进行反向查找。
+- 强制制作模式将传递 `Java.Util.Locale.Default` 给底层 TTS 引擎。
+- 日志文件位于 `/data/user/0/com.example.utauttsbuilder/files/logs/`。
 
 ---
 
@@ -220,7 +299,8 @@
 
 ## 版本对比链接
 
-[Unreleased]: https://github.com/styisme/UtauTtsBuilder/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/styisme/UtauTtsBuilder/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/styisme/UtauTtsBuilder/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/styisme/UtauTtsBuilder/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/styisme/UtauTtsBuilder/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/styisme/UtauTtsBuilder/releases/tag/v1.0.0

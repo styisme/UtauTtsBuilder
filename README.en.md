@@ -7,7 +7,7 @@
 > Generate UTAU voicebanks from Android system TTS engines with one tap.
 
 [![Build Android APK](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml/badge.svg)](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml)
-[![Version](https://img.shields.io/badge/version-1.1.1-512BD4)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-512BD4)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
@@ -33,7 +33,7 @@
 
 ## 📦 Latest Version
 
-Current version: **v1.1.1**
+Current version: **v1.2.0**
 
 Full history in [CHANGELOG.md](CHANGELOG.md).
 
@@ -41,34 +41,39 @@ Full history in [CHANGELOG.md](CHANGELOG.md).
 
 ## ✨ Features
 
-### Voicebank Generation
+### Voicebank Generation & Advanced Synthesis
 - 🗣️ **Multiple TTS engines** — Auto-enumerates all installed local TTS engines
 - ☁️ **Cloud TTS** — Azure Speech and Google Cloud TTS (bring your own API key)
 - 🌏 **Multi-language voicebanks** — Japanese, Chinese, English
   - Japanese: CV (129) / CVVC (194) / VCV (105)
   - Chinese: CV (78) / CVVC (203) / VCV (130)
   - English: CV (93)
-- 📥 **Custom reclist import** — Import any `.txt` phoneme list
-- 🎨 **Custom icon & portrait** — Pick from gallery, auto-packaged
-- 🗜️ **Auto ZIP packaging** + system share
-- 🤖 **Automatic oto.ini** — Heuristic parameter estimation
-- 📝 **Dual config output** — `character.txt` (UTAU) + `character.yaml` (OpenUtau)
-- 📄 **UST template generation** — Generates `test.ust` for quick preview
+- 🌍 **Cross-lingual Synthesis** — Support 7 conversion modes (Zh->Ja, Ja->Zh, En->Ja, etc.) with Smart Match. Allows generating voicebanks using a TTS engine that doesn't natively support the target language (bridged by romaji/pinyin).
+- 🛡️ **Force Build** — Automatically falls back to the system's default language if the target TTS engine doesn't support the selected one, preventing build interruptions.
+- ⚡ **Batch Generation** — Generate voicebanks for multiple selected TTS engines at once.
+- ⏱️ **Build Time Estimation** — Popup displays the estimated time and total syllables before starting.
+- 📥 **Custom reclist import** — Import any `.txt` phoneme list with a preview confirmation before processing.
+
+### Productivity & Diagnostics
+- 📂 **Voicebank Manager** — Scan and list all generated voicebanks. Supports sharing ZIP, editing `oto.ini`, generating USTs, and deleting.
+- ⚖️ **Engine Comparison** — Quickly A/B test different engines by synthesizing a single syllable.
+- 📊 **Global Runtime Log** — Records exceptions, menu actions, and network requests. Viewable, refreshable, and shareable within the app.
+- 📝 **Build Tracking** — Auto-generates `_log.txt` (per-syllable timing stats) and `_reference.txt` (pronunciation reference).
+- 🖼️ **Waveform & Preview** — View single syllable waveforms and auto-generate a `preview.png` (dark mode adaptive).
 
 ### Audio Processing
 - 🔊 **Pure C# audio** — No third-party libraries
 - ✂️ **Auto silence trimming** — 0.005f threshold, 8ms padding
 - 🎚️ **Speed / pitch sliders** — 0.5–1.5× / 0.5–2.0×
 - 🔄 **Resume support** — Skip existing audio files
-- 📊 **Build log** — `_log.txt` in the voicebank folder
 
 ### UI & UX
 - 🎨 **Four UI styles** — Material 3 / HarmonyOS / Windows UWP / Android 4 Holo
 - 🌗 **Dark mode** — Follow system / Light / Dark
 - 🎨 **Dynamic color** — Android 12+ wallpaper-based
 - 🌍 **Tri-language UI** — 中文 / English / 日本語
-- 🔀 **Fully custom selectors** — No system Picker / ActionSheet
-- ⚙️ **Settings sub-pages** — Appearance, UI style, language, dynamic color, cloud, about
+- 🔀 **Fully custom components** — Ditched system Picker / ActionSheet / Alert. All dialogs follow the current UI theme.
+- ⚙️ **Advanced Menu** — `⋯` menu on the top right for voicebank manager, batch build, compare, logs, etc.
 
 ---
 
@@ -76,18 +81,28 @@ Full history in [CHANGELOG.md](CHANGELOG.md).
 
 ### Basic Flow
 1. Download the latest APK from [Releases](../../releases/latest) and install
-2. Grant **file & media** access on first launch
+2. Grant **file, media & network** access on first launch
 3. Choose:
    - **Voicebank language** (Japanese / Chinese / English; CV / CVVC / VCV)
+   - **Cross-lingual mode** (Default is Native; allows a non-Japanese TTS engine to read romanized/pinyin-mapped syllables)
    - **TTS engine** (name auto-fills)
    - **Speed / pitch** (defaults recommended)
    - **Voicebank name**
    - Icon / portrait / author (optional)
-4. Tap **"Build voicebank"**
+4. Tap **"Build voicebank"** and confirm the estimated time
 5. After completion, a menu appears:
+   - **View waveform / play** → open detail page
    - **Edit oto.ini** → share via system panel to a text editor
    - **Generate UST template** → writes `test.ust`
    - **Share ZIP** → save to any app via share sheet
+
+### Advanced Features (`⋯` Menu)
+- **Voicebank Manager**: Manage historical build outputs
+- **Batch Generation**: Run all selected engines in one go
+- **Engine Comparison**: Quick A/B test of engine timbres
+- **Check for Updates**: Manually fetch GitHub Releases
+- **Runtime Log**: Essential for troubleshooting
+- **Clear Cache**: Free up temporary space
 
 ### Cloud TTS (Optional)
 1. Settings → **Cloud TTS settings**
@@ -124,10 +139,12 @@ Internal storage/Download/UtauTtsBuilder/{voicebank name}/
 ├── oto.ini            # UTAU params (Shift-JIS)
 ├── character.txt      # UTAU descriptor (Shift-JIS)
 ├── character.yaml     # OpenUtau descriptor (UTF-8, with portrait)
+├── preview.png        # Voicebank preview image (auto-generated)
 ├── icon.png           # Icon (optional)
 ├── portrait.png       # Portrait (optional)
 ├── test.ust           # UST template (optional)
-└── _log.txt           # Build log
+├── _log.txt           # Build log (timing stats)
+└── _reference.txt     # Pronunciation reference (alias to TTS text)
 ```
 
 ---
@@ -166,7 +183,7 @@ The project is configured with `.github/workflows/build-android.yml`:
 
 - **TTS quality is everything** — System TTS is designed for reading, not singing; transitions will be noticeable
 - **CVVC / VCV need manual tuning** — Strongly recommend [vLabeler](https://github.com/sdercolin/vlabeler) or [setParam](https://github.com/LiCybora/setParam)
-- **Limited Japanese support on Chinese phones** — Some devices lack Japanese voice packs
+- **Cross-lingual may have an accent** — Pronunciation bridged by romaji/pinyin may retain the original language's tone
 - **Cloud TTS needs internet** — Google may be blocked in some regions
 - **BMP recommended for icons** — Original UTAU has limited PNG support; OpenUtau is fine
 - **AI-generated code may contain bugs** — See AI notice above
@@ -180,12 +197,6 @@ Issues and PRs welcome! **Please read [CONTRIBUTING.md](CONTRIBUTING.md) first**
 - Code style & Conventional Commits
 - Branch model & PR flow
 - Release process
-
-**Priorities**:
-- More accurate oto.ini auto-estimation
-- More language reclists (Korean, Spanish, etc.)
-- More cloud TTS providers
-- UI/UX improvements
 
 ---
 

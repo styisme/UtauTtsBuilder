@@ -8,7 +8,7 @@
 > Generate UTAU voicebanks from Android system TTS engines with one tap.
 
 [![Build Android APK](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml/badge.svg)](https://github.com/styisme/UtauTtsBuilder/actions/workflows/build-android.yml)
-[![Version](https://img.shields.io/badge/version-1.1.1-512BD4)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-512BD4)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
@@ -34,7 +34,7 @@
 
 ## 📦 最新版本
 
-当前版本：**v1.1.1**
+当前版本：**v1.2.0**
 
 完整版本历史请见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -42,34 +42,39 @@
 
 ## ✨ 功能特性
 
-### 声库生成
+### 声库生成与高级玩法
 - 🗣️ **多 TTS 引擎** — 自动枚举设备上所有已安装的本地 TTS 引擎
 - ☁️ **云端 TTS** — 支持 Azure Speech 和 Google Cloud TTS（需自备 API Key）
 - 🌏 **多语言声库** — 日语、中文、英语
   - 日语：CV (129) / CVVC (194) / VCV (105)
   - 中文：CV (78) / CVVC (203) / VCV (130)
   - 英语：CV (93)
-- 📥 **自定义音素表** — 导入任意 `.txt` 音素表
-- 🎨 **自定义图标与立绘** — 从相册选择，自动打包进声库
-- 🗜️ **自动 ZIP 打包** + 系统分享
-- 🤖 **全自动 oto.ini** — 基于音频时长的启发式参数估算
-- 📝 **双配置输出** — `character.txt`（UTAU）+ `character.yaml`（OpenUtau）
-- 📄 **UST 模板生成** — 生成 `test.ust` 便于快速试听
+- 🌍 **跨语种合成** — 支持中→日、日→中、英→日、英→中等 7 种转换模式，支持智能匹配，用不支持目标语言的引擎也能生成（基于罗马音/拼音桥梁）
+- 🛡️ **强制制作** — 开启后，目标 TTS 引擎若不支持所选语言，自动降级使用系统默认语言合成，防止中断
+- ⚡ **多引擎批量生成** — 一键为选中的多个 TTS 引擎分别生成不同的声库
+- ⏱️ **生成时间预估** — 点下生成前，提前展示预计耗时和音节总数
+- 📥 **自定义音素表** — 导入任意 `.txt` 音素表，导入前提供预览确认
+
+### 生产力与诊断工具
+- 📂 **声库管理列表** — 扫描并列出所有已生成的声库，支持一键分享 ZIP、编辑 `oto.ini`、生成 UST、删除等操作
+- ⚖️ **引擎音质对比** — 快速调用所有可用引擎朗读同一段音节，方便 A/B 试听对比
+- 📊 **全局运行日志** — 记录所有异常、菜单操作、网络请求结果。支持实时查看、清空与分享日志文件
+- 📝 **构建追踪** — 每个声库自动生成 `_log.txt`（记录每个音节耗时）和 `_reference.txt`（发音参考表）
+- 🖼️ **波形与预览图** — 支持查看单个音节波形，生成完成后自动绘制一张声库预览图（自适应深色模式）
 
 ### 音频处理
 - 🔊 **纯 C# 音频处理** — 不依赖任何第三方库
 - ✂️ **首尾静音自动裁剪** — 阈值 0.005f，两端各留 8ms padding
 - 🎚️ **语速 / 音高调节** — 主页实时滑块（0.5–1.5× / 0.5–2.0×）
 - 🔄 **断点续传** — 跳过已存在的音频（可关闭）
-- 📊 **生成日志** — 写入声库目录 `_log.txt`
 
 ### 界面与体验
 - 🎨 **四种 UI 风格** — Material 3 / 鸿蒙 HarmonyOS / Windows UWP / Android 4 Holo
 - 🌗 **深色模式** — 跟随系统 / 浅色 / 深色
 - 🎨 **动态取色** — Android 12+ 壁纸动态取色（可关闭）
 - 🌍 **三语 UI** — 中文 / English / 日本語（跟随系统或手动切换）
-- 🔀 **完全自定义选择器** — 抛弃系统 Picker / ActionSheet，全部跟随当前 UI 风格
-- ⚙️ **设置二级页面** — 外观、UI 风格、语言、动态取色、云端配置、关于
+- 🔀 **完全自定义组件** — 抛弃系统 Picker / ActionSheet / Alert，所有弹窗完全跟随当前 UI 风格
+- ⚙️ **二级菜单与设置** — 主页右上角 `⋯` 更多菜单统一收纳高级功能，设置页集中管理外观与引擎
 
 ---
 
@@ -77,18 +82,28 @@
 
 ### 基础流程
 1. 从 [Releases](../../releases/latest) 下载最新 APK 并安装
-2. 首次启动时**允许「文件和媒体」访问权限**
+2. 首次启动时**允许「文件和媒体」和「网络」访问权限**
 3. 依次选择：
    - **声库语言**（日语 / 中文 / 英语，CV / CVVC / VCV）
+   - **跨语种模式**（默认原生，可让不支持日语的引擎读中文映射出的日语音节）
    - **TTS 引擎**（选中后声库名会自动填入）
    - **语速 / 音高**（建议先用默认值）
    - **声库名称**
    - 图标 / 立绘 / 作者（均可选）
-4. 点击 **「开始生成声库」**
+4. 点击 **「开始生成声库」**，确认预估时间
 5. 生成完成后弹出操作菜单：
+   - **查看波形/试听** → 打开详情页
    - **编辑 oto.ini** → 通过分享面板选择文本编辑器
    - **生成 UST 模板** → 写入 `test.ust` 到声库目录
-   - **分享 ZIP** → 系统分享面板，可保存到任意位置
+   - **分享 ZIP** → 系统分享面板
+
+### 高级功能（右上角 `⋯` 菜单）
+- **已生成的声库**：管理历史生成产物
+- **多引擎批量生成**：一键跑完所有引擎
+- **引擎音质对比**：快速试听各引擎音色
+- **检查更新**：手动拉取 GitHub Releases
+- **运行日志**：排查错误必备
+- **清除缓存**：释放临时空间
 
 ### 使用云端 TTS（可选）
 1. 设置页 → **云端 TTS 配置**
@@ -125,10 +140,12 @@
 ├── oto.ini            # UTAU 参数文件（Shift-JIS）
 ├── character.txt      # UTAU 声库描述（Shift-JIS）
 ├── character.yaml     # OpenUtau 声库描述（UTF-8，含立绘）
+├── preview.png        # 声库预览图（自动生成）
 ├── icon.png           # 图标（可选）
 ├── portrait.png       # 立绘（可选）
 ├── test.ust           # UST 模板（可选生成）
-└── _log.txt           # 生成日志
+├── _log.txt           # 生成日志（耗时统计）
+└── _reference.txt     # 语音参考表（别名与 TTS 文本映射）
 ```
 
 ---
@@ -167,7 +184,7 @@ dotnet build -f net10.0-android -c Release
 
 - **TTS 质量决定一切** — 系统 TTS 为朗读设计，缺乏歌唱所需的稳定元音延展性，拼接痕迹明显
 - **CVVC / VCV 需要手动微调** — 生成的 oto.ini 参数为估算值，强烈建议用 [vLabeler](https://github.com/sdercolin/vlabeler) 或 [setParam](https://github.com/LiCybora/setParam) 手动调整
-- **国产手机 TTS 日语支持有限** — 部分设备无日语语音包，程序会检测并提示
+- **跨语种可能存在口音** — 用罗马音桥梁转换出的发音可能带有原语言的腔调
 - **云端 TTS 依赖网络** — 且国内访问 Google 可能受限
 - **图标建议用 BMP** — 原版 UTAU 对 PNG 支持有限，OpenUtau 无此限制
 - **AI 生成代码可能含未知 bug** — 详见 AI 生成声明
@@ -181,12 +198,6 @@ dotnet build -f net10.0-android -c Release
 - 代码风格与提交规范（Conventional Commits）
 - 分支模型与 PR 流程
 - 发布流程与版本号规则
-
-**近期优先事项**：
-- 更精确的 oto.ini 自动估算算法
-- 更多语言 reclist（韩语、西班牙语等）
-- 更多云端 TTS 服务（讯飞在线、阿里云等）
-- UI/UX 改进
 
 ---
 
