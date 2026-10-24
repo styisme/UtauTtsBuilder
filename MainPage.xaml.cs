@@ -763,6 +763,34 @@ public partial class MainPage : ContentPage
     }
 
     // ===== 生成 =====
+
+    // ===== 跨语种转换 =====
+    private CrossLingualMode _selectedCrossLang = CrossLingualMode.Native;
+
+    private async void OnCrossLangTapped(object sender, EventArgs e)
+    {
+        var modes = new List<CrossLingualMode>
+        {
+            CrossLingualMode.Native,
+            CrossLingualMode.ZhToJa,
+            CrossLingualMode.JaToZh,
+            CrossLingualMode.EnToJa,
+            CrossLingualMode.EnToZh,
+            CrossLingualMode.JaToEn,
+            CrossLingualMode.ZhToEn,
+            CrossLingualMode.Smart
+        };
+        var titles = modes.Select(CrossLingualService.GetDisplayName).ToList();
+        int currentIdx = modes.IndexOf(_selectedCrossLang);
+
+        var idx = await ShowSelectionAsync(Loc.T("sec_cross_lang"), titles, currentIdx);
+        if (idx >= 0)
+        {
+            _selectedCrossLang = modes[idx];
+            CrossLangValueLabel.Text = titles[idx];
+        }
+    }
+
     private async void OnBuildClicked(object sender, EventArgs e)
     {
         Logger.Info("MainPage", "Build clicked");
