@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ctrl="clr-namespace:UtauTtsBuilder.Controls"
+             x:Class="UtauTtsBuilder.OtoEditorPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="8,12,16,12">
+            <Button Grid.Column="0" Text="←" FontSize="20" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurface}" Clicked="OnBackClicked" />
+            <Label Grid.Column="1" x:Name="TitleLabel" FontSize="18" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" Margin="4,0,0,0" />
+            <Button Grid.Column="2" x:Name="SaveBtn" Style="{StaticResource Md3TonalButton}" Clicked="OnSaveClicked" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,16" Spacing="16">
+                <!-- 文件名切换 -->
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Text="◀" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="Transparent" TextColor="{DynamicResource Md3Primary}" Clicked="OnPrevClicked"/>
+                    <Label Grid.Column="1" x:Name="FileNameLabel" HorizontalTextAlignment="Center" VerticalOptions="Center" FontSize="16" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" />
+                    <Button Grid.Column="2" Text="▶" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="Transparent" TextColor="{DynamicResource Md3Primary}" Clicked="OnNextClicked"/>
+                </Grid>
+
+                <!-- 波形图与拖拽线 -->
+                <Border Style="{StaticResource Md3Card}" Padding="0" HeightRequest="200">
+                    <Grid>
+                        <ctrl:WaveformView x:Name="Waveform" WaveColor="{DynamicResource Md3SurfaceVariant}" />
+                        <AbsoluteLayout x:Name="Overlay">
+                            <BoxView x:Name="OffsetLine" WidthRequest="2" Color="Red" AbsoluteLayout.LayoutBounds="0,0,2,1" AbsoluteLayout.LayoutFlags="YProportional" />
+                            <BoxView x:Name="ConsonantLine" WidthRequest="2" Color="Blue" AbsoluteLayout.LayoutBounds="0,0,2,1" AbsoluteLayout.LayoutFlags="YProportional" />
+                            <BoxView x:Name="CutoffLine" WidthRequest="2" Color="Green" AbsoluteLayout.LayoutBounds="0,0,2,1" AbsoluteLayout.LayoutFlags="YProportional" />
+                        </AbsoluteLayout>
+                    </Grid>
+                </Border>
+
+                <!-- 参数显示 -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="Offset (左边界)" FontSize="12" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Label x:Name="OffsetLabel" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3Primary}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Consonant (固定点)" FontSize="12" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Label x:Name="ConsonantLabel" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3Primary}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="2" Spacing="4">
+                        <Label Text="Cutoff (截断点)" FontSize="12" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Label x:Name="CutoffLabel" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{DynamicResource Md3Primary}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

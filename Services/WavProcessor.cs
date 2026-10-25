@@ -22,10 +22,8 @@ public static class WavProcessor
     {
         var bytes = File.ReadAllBytes(path);
         if (bytes.Length < 44) throw new InvalidDataException("WAV 文件过小");
-        if (Encoding.ASCII.GetString(bytes, 0, 4) != "RIFF")
-            throw new InvalidDataException("不是 RIFF 文件");
-        if (Encoding.ASCII.GetString(bytes, 8, 4) != "WAVE")
-            throw new InvalidDataException("不是 WAVE 文件");
+        if (Encoding.ASCII.GetString(bytes, 0, 4) != "RIFF") throw new InvalidDataException("不是 RIFF");
+        if (Encoding.ASCII.GetString(bytes, 8, 4) != "WAVE") throw new InvalidDataException("不是 WAVE");
 
         int pos = 12;
         int sampleRate = 0, channels = 0, bits = 0;
@@ -77,37 +75,68 @@ public static class WavProcessor
         var samples = DecodeToFloat(info.RawData, info.BitsPerSample, info.Channels);
         var mono = ToMono(samples, info.Channels);
         var resampled = Resample(mono, info.SampleRate, TargetSampleRate);
-
-        // 首尾静音裁剪
+        
+        // 1. 裁掉首尾静音
         resampled = TrimSilence(resampled, TargetSampleRate);
+        
+        // 2. 元音拉伸 (Target 800ms)
+        resampled = StretchVowel(resampled, TargetSampleRate, 0.8f);
 
         Normalize(resampled, 0.89f);
         WriteWav16(outputPath, resampled, TargetSampleRate, TargetChannels);
     }
 
-    /// <summary>
-    /// 裁掉首尾的静音段，两端各留 8ms padding。
-    /// 阈值 0.005f（约 -46dB），足够保留轻微呼吸音。
-    /// </summary>
+    private static float[] StretchVowel(float[] samples, int sampleRate, float targetSeconds)
+    {
+        int targetSamples = (int)(sampleRate * targetSeconds);
+        if (samples.Length >= targetSamples || samples.Length < sampleRate / 10) return samples;
+
+        // 寻找能量最大的 200ms 片段作为循环区
+        int windowSize = sampleRate / 5;
+        int bestStart = 0;
+        float maxEnergy = 0;
+
+        for (int i = 0; i < samples.Length - windowSize; i += 441)
+        {
+            float energy = 0;
+            for (int j = 0; j < windowSize; j += 10) energy += Math.Abs(samples[i + j]);
+            if (energy > maxEnergy) { maxEnergy = energy; bestStart = i; }
+        }
+
+        var loop = new float[windowSize];
+        Array.Copy(samples, bestStart, loop, 0, windowSize);
+
+        int resultLen = Math.Max(targetSamples, samples.Length);
+        var result = new float[resultLen];
+        Array.Copy(samples, 0, result, 0, samples.Length);
+
+        int writePos = samples.Length;
+        int fadeLen = sampleRate / 100; // 10ms crossfade
+
+        while (writePos < resultLen)
+        {
+            int copyLen = Math.Min(windowSize, resultLen - writePos);
+            for (int i = 0; i < copyLen; i++)
+            {
+                float fadeIn = i < fadeLen ? (float)i / fadeLen : 1f;
+                float fadeOut = i < fadeLen ? 1f - fadeIn : 1f;
+                result[writePos + i] = result[writePos + i] * fadeOut + loop[i] * fadeIn;
+            }
+            writePos += copyLen;
+        }
+        return result;
+    }
+
     public static float[] TrimSilence(float[] samples, int sampleRate)
     {
         const float threshold = 0.005f;
-        int padding = (int)(sampleRate * 0.008); // 8ms
-
+        int padding = (int)(sampleRate * 0.008);
         int start = 0;
-        while (start < samples.Length && Math.Abs(samples[start]) < threshold)
-            start++;
-
+        while (start < samples.Length && Math.Abs(samples[start]) < threshold) start++;
         int end = samples.Length - 1;
-        while (end > start && Math.Abs(samples[end]) < threshold)
-            end--;
+        while (end > start && Math.Abs(samples[end]) < threshold) end--;
 
-        // 全是静音，直接返回（返回短静音，防止空数组崩溃）
-        if (start >= end)
-        {
-            var tiny = new float[Math.Max(padding * 2, 100)];
-            return tiny;
-        }
+        if (start >= end) return new float[Math.Max(padding * 2, 100)];
 
         start = Math.Max(0, start - padding);
         end = Math.Min(samples.Length - 1, end + padding);
@@ -118,27 +147,25 @@ public static class WavProcessor
         return result;
     }
 
-    private static float[] DecodeToFloat(byte[] data, int bits, int channels)
+    public static float[] DecodeToFloat(byte[] data, int bits, int channels)
     {
         int bytesPerSample = bits / 8;
         int sampleCount = data.Length / bytesPerSample;
         var result = new float[sampleCount];
-
         for (int i = 0; i < sampleCount; i++)
         {
             int offset = i * bytesPerSample;
             float v = 0f;
             if (bits == 8) v = (data[offset] - 128) / 128f;
             else if (bits == 16) v = BitConverter.ToInt16(data, offset) / 32768f;
-            else if (bits == 24) v = (data[offset] | (data[offset + 1] << 8)
-                    | ((sbyte)data[offset + 2] << 16)) / 8388608f;
+            else if (bits == 24) v = (data[offset] | (data[offset + 1] << 8) | ((sbyte)data[offset + 2] << 16)) / 8388608f;
             else if (bits == 32) v = BitConverter.ToInt32(data, offset) / 2147483648f;
             result[i] = v;
         }
         return result;
     }
 
-    private static float[] ToMono(float[] input, int channels)
+    public static float[] ToMono(float[] input, int channels)
     {
         if (channels == 1) return input;
         int frames = input.Length / channels;
@@ -146,14 +173,13 @@ public static class WavProcessor
         for (int i = 0; i < frames; i++)
         {
             float sum = 0;
-            for (int c = 0; c < channels; c++)
-                sum += input[i * channels + c];
+            for (int c = 0; c < channels; c++) sum += input[i * channels + c];
             result[i] = sum / channels;
         }
         return result;
     }
 
-    private static float[] Resample(float[] input, int srcRate, int dstRate)
+    public static float[] Resample(float[] input, int srcRate, int dstRate)
     {
         if (srcRate == dstRate) return input;
         double ratio = (double)dstRate / srcRate;
@@ -170,32 +196,24 @@ public static class WavProcessor
         return output;
     }
 
-    private static void Normalize(float[] samples, float peak)
+    public static void Normalize(float[] samples, float peak)
     {
         float max = 0f;
-        foreach (var s in samples)
-        {
-            var abs = Math.Abs(s);
-            if (abs > max) max = abs;
-        }
+        foreach (var s in samples) if (Math.Abs(s) > max) max = Math.Abs(s);
         if (max < 1e-6f || max >= peak) return;
         float gain = peak / max;
-        for (int i = 0; i < samples.Length; i++)
-            samples[i] *= gain;
+        for (int i = 0; i < samples.Length; i++) samples[i] *= gain;
     }
 
     public static void WriteWav16(string path, float[] samples, int sampleRate, int channels)
     {
         const int bytesPerSample = 2;
         int dataSize = samples.Length * bytesPerSample;
-
         using var fs = File.Create(path);
         using var bw = new BinaryWriter(fs);
-
         bw.Write(Encoding.ASCII.GetBytes("RIFF"));
         bw.Write(36 + dataSize);
         bw.Write(Encoding.ASCII.GetBytes("WAVE"));
-
         bw.Write(Encoding.ASCII.GetBytes("fmt "));
         bw.Write(16);
         bw.Write((short)1);
@@ -204,10 +222,8 @@ public static class WavProcessor
         bw.Write(sampleRate * channels * bytesPerSample);
         bw.Write((short)(channels * bytesPerSample));
         bw.Write((short)(bytesPerSample * 8));
-
         bw.Write(Encoding.ASCII.GetBytes("data"));
         bw.Write(dataSize);
-
         foreach (var s in samples)
         {
             var clamped = Math.Max(-1f, Math.Min(1f, s));
