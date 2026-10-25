@@ -8,7 +8,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="16,24,16,48" Spacing="20">
 
-            <!-- 顶部标题 + 按钮 -->
             <Grid ColumnDefinitions="*,Auto,Auto" Margin="4,0,0,0" ColumnSpacing="4">
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                     <Label x:Name="TitleLabel" Style="{StaticResource Md3Headline}" />
@@ -18,17 +17,13 @@
                 <Button Grid.Column="2" x:Name="SettingsBtn" Text="⚙" FontSize="22" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurfaceVariant}" VerticalOptions="Start" Clicked="OnSettingsClicked" />
             </Grid>
 
-            <!-- ★ 平行双 Tab -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                 <Button Grid.Column="0" x:Name="TabUtauBtn" Text="UTAU 生成" Style="{StaticResource Md3TonalButton}" Clicked="OnTabUtauClicked" />
                 <Button Grid.Column="1" x:Name="TabDsBtn" Text="DiffSinger 语料" Style="{StaticResource Md3OutlinedButton}" Clicked="OnTabDsClicked" />
             </Grid>
 
-            <!-- ==================================================== -->
             <!-- 面板 1：UTAU 生成 -->
-            <!-- ==================================================== -->
             <VerticalStackLayout x:Name="UtauPanel" Spacing="20">
-                <!-- ① 语言 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecLangLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3TextField}" Padding="16,14">
@@ -44,7 +39,6 @@
                     </Grid>
                 </VerticalStackLayout>
 
-                <!-- 跨语种 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecCrossLangLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3TextField}" Padding="16,14">
@@ -56,7 +50,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- ② 引擎 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3TextField}" Padding="16,14">
@@ -69,7 +62,6 @@
                     <Button x:Name="RefreshBtn" Style="{StaticResource Md3TonalButton}" Clicked="OnRefreshClicked" />
                 </VerticalStackLayout>
 
-                <!-- 语音调优 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecTuneLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3Card}">
@@ -92,7 +84,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- ③ 名称 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecNameLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3TextField}">
@@ -100,7 +91,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- ④ 图标 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecIconLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Label x:Name="HintIconLabel" Style="{StaticResource Md3BodySmall}" Margin="4,-4,0,0" />
@@ -116,7 +106,6 @@
                     </Grid>
                 </VerticalStackLayout>
 
-                <!-- ⑤ 立绘 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecPortraitLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Label x:Name="HintPortraitLabel" Style="{StaticResource Md3BodySmall}" Margin="4,-4,0,0" />
@@ -132,7 +121,6 @@
                     </Grid>
                 </VerticalStackLayout>
 
-                <!-- ⑥ 作者 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecAuthorLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Border Style="{StaticResource Md3TextField}">
@@ -140,7 +128,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- ⑦ 输出路径 -->
                 <VerticalStackLayout Spacing="10">
                     <Label x:Name="SecOutputLabel" Style="{StaticResource Md3TitleMedium}" />
                     <Label x:Name="HintOutputLabel" Style="{StaticResource Md3BodySmall}" Margin="4,-4,0,0" />
@@ -149,7 +136,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- ZIP 与 续传 -->
                 <Border Style="{StaticResource Md3Card}">
                     <VerticalStackLayout Spacing="10">
                         <HorizontalStackLayout Spacing="12">
@@ -168,11 +154,44 @@
                 <Label x:Name="StatusLabel" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" LineBreakMode="WordWrap" Margin="4,0" />
             </VerticalStackLayout>
 
-            <!-- ==================================================== -->
             <!-- 面板 2：DiffSinger 语料 -->
-            <!-- ==================================================== -->
             <VerticalStackLayout x:Name="DsPanel" IsVisible="False" Spacing="16">
                 
+                <!-- ★ 新增：DS 面板专属引擎选择 -->
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="DsSecEngineLabel" Style="{StaticResource Md3TitleMedium}" />
+                    <Border Style="{StaticResource Md3TextField}" Padding="16,14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" x:Name="DsEngineValueLabel" FontSize="15" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label Grid.Column="1" Text="▾" FontSize="16" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnDsEngineTapped" /></Border.GestureRecognizers>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ★ 新增：DS 面板专属语速与音高 -->
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="DsSecTuneLabel" Style="{StaticResource Md3TitleMedium}" />
+                    <Border Style="{StaticResource Md3Card}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label x:Name="DsSpeedLabel" Grid.Column="0" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" />
+                                <Label x:Name="DsSpeedValue" Grid.Column="1" FontSize="14" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" VerticalOptions="Center" />
+                            </Grid>
+                            <Slider x:Name="DsSpeedSlider" Minimum="0.5" Maximum="1.5" Value="0.85" MinimumTrackColor="{DynamicResource Md3Primary}" MaximumTrackColor="{DynamicResource Md3OutlineVariant}" ThumbColor="{DynamicResource Md3Primary}" ValueChanged="OnDsSpeedChanged" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Style="{StaticResource Md3Card}">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label x:Name="DsPitchLabel" Grid.Column="0" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" />
+                                <Label x:Name="DsPitchValue" Grid.Column="1" FontSize="14" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" VerticalOptions="Center" />
+                            </Grid>
+                            <Slider x:Name="DsPitchSlider" Minimum="0.5" Maximum="2.0" Value="1.0" MinimumTrackColor="{DynamicResource Md3Primary}" MaximumTrackColor="{DynamicResource Md3OutlineVariant}" ThumbColor="{DynamicResource Md3Primary}" ValueChanged="OnDsPitchChanged" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
                 <Label x:Name="DsSectionLabel" Style="{StaticResource Md3TitleMedium}" Text="📚 海量内置语料" />
                 
                 <Border Style="{StaticResource Md3Card}">

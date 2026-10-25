@@ -50,71 +50,104 @@ public static class TtsToDiffSingerService
         {
             foreach (var req in requests)
             {
-                // 每个语言重新初始化一次 TTS
                 if (isCloud) await cloudTts!.InitializeAsync(req.LanguageCode);
                 else await localTts!.InitializeAsync(req.LanguageCode, speechRate, pitch, AppSettings.ForceBuild);
 
-                // 按标点切分
+                // 1. 按标点切分长文本
                 var sentences = Regex.Split(req.Text, @"(?<=[。！？.!?\n])")
                     .Select(s => s.Trim())
                     .Where(s => !string.IsNullOrEmpty(s))
                     .ToList();
 
-                if (sentences.Count == 0) continue;
-
-                for (int i = 0; i < sentences.Count; i++)
+                // 2. 二次切分：强制不超过 20 个字，确保所有手机 TTS 都能处理
+                var chunks = new List<string>();
+                foreach (var s in sentences)
                 {
-                    var sentence = sentences[i];
+                    var sub = Regex.Split(s, @"(?<=[，、；,;])").Where(x => !string.IsNullOrWhiteSpace(x));
+                    foreach (var part in sub)
+                    {
+                        var p = part.Trim();
+                        if (p.Length > 20)
+                        {
+                            for (int k = 0; k < p.Length; k += 20)
+                                chunks.Add(p.Substring(k, Math.Min(20, p.Length - k)));
+                        }
+                        else
+                        {
+                            chunks.Add(p);
+                        }
+                    }
+                }
+
+                if (chunks.Count == 0) continue;
+
+                for (int i = 0; i < chunks.Count; i++)
+                {
+                    var chunk = chunks[i];
                     var baseName = $"corpus_{req.LanguageCode.Replace("-", "")}_{globalIndex:D4}";
                     globalIndex++;
 
-                    progress.Report($"[{baseName}] 合成: {sentence.Substring(0, Math.Min(10, sentence.Length))}...");
+                    progress.Report($"[{baseName}] 合成: {chunk.Substring(0, Math.Min(10, chunk.Length))}...");
 
-                    var rawPath = Path.Combine(rawDir, baseName + ".wav");
+                    // ★ 关键修复：临时文件加 _temp 后缀，防止被误删
+                    var tempPath = Path.Combine(rawDir, baseName + "_temp.wav");
+                    var finalPath = Path.Combine(rawDir, baseName + ".wav");
 
                     try
                     {
-                        if (isCloud) await cloudTts!.SynthesizeToFileAsync(sentence, rawPath);
-                        else await localTts!.SynthesizeToFileAsync(sentence, rawPath);
+                        if (isCloud) await cloudTts!.SynthesizeToFileAsync(chunk, tempPath);
+                        else await localTts!.SynthesizeToFileAsync(chunk, tempPath);
                     }
                     catch (Exception ex)
                     {
-                        progress.Report($"[跳过] {req.LanguageCode} 不支持: {ex.Message}");
-                        Logger.Warn("DS_Corpus", $"Failed {req.LanguageCode}: {ex.Message}");
-                        continue; // 如果该语言不支持，跳过这句
+                        progress.Report($"[跳过] TTS 不支持或出错: {ex.Message}");
+                        continue;
                     }
 
-                    if (!File.Exists(rawPath) || new FileInfo(rawPath).Length <= 44) continue;
-
-                    var finalPath = Path.Combine(rawDir, baseName + ".wav");
-                    WavProcessor.ConvertToUtauFormat(rawPath, finalPath);
-                    File.Delete(rawPath);
-
-                    var info = WavProcessor.ReadWav(finalPath);
-                    var samples = WavProcessor.DecodeToFloat(info.RawData, info.BitsPerSample, info.Channels);
-                    var durMs = WavProcessor.GetDurationMs(finalPath);
-
-                    var phonemes = ConvertTextToPhonemes(sentence);
-                    transcriptions.AppendLine($"raw/{baseName}.wav|{phonemes}");
-                    durBuilder.AppendLine($"{baseName}.wav|{durMs:F0}");
-
-                    var f0 = ExtractF0(samples, info.SampleRate, 10);
-                    f0Builder.AppendLine($"{baseName}.wav={string.Join(",", f0)}");
-
-                    var energy = ExtractEnergy(samples, info.SampleRate, 10);
-                    energyBuilder.AppendLine($"{baseName}.wav={string.Join(",", energy)}");
-
-                    if (doAugmentation)
+                    if (!File.Exists(tempPath) || new FileInfo(tempPath).Length <= 44)
                     {
-                        var augName = baseName + "_aug";
-                        var augPath = Path.Combine(rawDir, augName + ".wav");
-                        var augSamples = ResampleForPitch(samples, 1.122f); // +2 半音
-                        WavProcessor.WriteWav16(augPath, augSamples, info.SampleRate, 1);
+                        progress.Report($"[跳过] TTS 没有生成音频文件");
+                        continue;
+                    }
+
+                    try
+                    {
+                        // 转换格式并保存到 finalPath
+                        WavProcessor.ConvertToUtauFormat(tempPath, finalPath);
                         
-                        transcriptions.AppendLine($"raw/{augName}.wav|{phonemes}");
-                        durBuilder.AppendLine($"{augName}.wav|{durMs:F0}");
-                        f0Builder.AppendLine($"{augName}.wav={string.Join(",", ExtractF0(augSamples, info.SampleRate, 10))}");
-                        energyBuilder.AppendLine($"{augName}.wav={string.Join(",", ExtractEnergy(augSamples, info.SampleRate, 10))}");
+                        // 这时候删除 tempPath 就不会影响 finalPath 了
+                        if (File.Exists(tempPath)) File.Delete(tempPath);
+
+                        var info = WavProcessor.ReadWav(finalPath);
+                        var samples = WavProcessor.DecodeToFloat(info.RawData, info.BitsPerSample, info.Channels);
+                        var durMs = WavProcessor.GetDurationMs(finalPath);
+
+                        var phonemes = ConvertTextToPhonemes(chunk);
+                        transcriptions.AppendLine($"raw/{baseName}.wav|{phonemes}");
+                        durBuilder.AppendLine($"{baseName}.wav|{durMs:F0}");
+
+                        var f0 = ExtractF0(samples, info.SampleRate, 10);
+                        f0Builder.AppendLine($"{baseName}.wav={string.Join(",", f0)}");
+
+                        var energy = ExtractEnergy(samples, info.SampleRate, 10);
+                        energyBuilder.AppendLine($"{baseName}.wav={string.Join(",", energy)}");
+
+                        if (doAugmentation)
+                        {
+                            var augName = baseName + "_aug";
+                            var augPath = Path.Combine(rawDir, augName + ".wav");
+                            var augSamples = ResampleForPitch(samples, 1.122f);
+                            WavProcessor.WriteWav16(augPath, augSamples, info.SampleRate, 1);
+                            
+                            transcriptions.AppendLine($"raw/{augName}.wav|{phonemes}");
+                            durBuilder.AppendLine($"{augName}.wav|{durMs:F0}");
+                            f0Builder.AppendLine($"{augName}.wav={string.Join(",", ExtractF0(augSamples, info.SampleRate, 10))}");
+                            energyBuilder.AppendLine($"{augName}.wav={string.Join(",", ExtractEnergy(augSamples, info.SampleRate, 10))}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        progress.Report($"[处理失败] {ex.Message}");
                     }
                 }
             }
@@ -130,7 +163,7 @@ public static class TtsToDiffSingerService
         File.WriteAllText(Path.Combine(tmpDir, "f0.txt"), f0Builder.ToString(), Encoding.UTF8);
         File.WriteAllText(Path.Combine(tmpDir, "energy.txt"), energyBuilder.ToString(), Encoding.UTF8);
 
-        var config = $@"# DiffSinger Config - Multi-Lingual Corpus
+        var config = $@"# DiffSinger Config - Corpus Mode
 raw_data_dir: raw
 binary_data_dir: binary
 work_dir: checkpoints/corpus

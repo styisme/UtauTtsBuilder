@@ -15,6 +15,7 @@ public partial class MainPage : ContentPage
     private List<VoicebankLanguage> _languageList = new();
     private int _selectedLanguageIndex = 0;
     private int _selectedEngineIndex = 0;
+    private int _dsSelectedEngineIndex = 0;
     private bool _updateChecked = false;
     private CrossLingualMode _selectedCrossLang = CrossLingualMode.Native;
 
@@ -48,6 +49,8 @@ public partial class MainPage : ContentPage
         ApplyLocalization();
         UpdateSpeedLabel();
         UpdatePitchLabel();
+        UpdateDsSpeedLabel();
+        UpdateDsPitchLabel();
         CrossLangValueLabel.Text = CrossLingualService.GetDisplayName(_selectedCrossLang);
         UpdateCharCounts();
     }
@@ -110,6 +113,10 @@ public partial class MainPage : ContentPage
         else PortraitLabel.Text = Loc.F("selected_fmt", Path.GetFileName(_portraitPath));
 
         // DS 面板翻译
+        DsSecEngineLabel.Text = Loc.T("sec_engine");
+        DsSecTuneLabel.Text = Loc.T("sec_tune");
+        DsSpeedLabel.Text = Loc.T("label_speed");
+        DsPitchLabel.Text = Loc.T("label_pitch");
         DsSectionLabel.Text = Loc.T("ds_corpus_section_builtin");
         DsHintLabel.Text = Loc.T("ds_corpus_hint");
         LblZh.Text = Loc.T("ds_corpus_zh");
@@ -147,7 +154,27 @@ public partial class MainPage : ContentPage
         TabUtauBtn.Style = (Style)Application.Current!.Resources["Md3OutlinedButton"];
     }
 
-    // ===== DiffSinger 生成 =====
+    // ===== DS 事件处理 =====
+    private async void OnDsEngineTapped(object sender, EventArgs e)
+    {
+        if (_engineLabels.Count == 0)
+        {
+            await DialogService.ShowAlertAsync(this, Loc.T("title_tip"), Loc.T("btn_refresh_engines"), Loc.T("btn_ok"));
+            return;
+        }
+        var idx = await ShowSelectionAsync(Loc.T("sec_engine"), _engineLabels, _dsSelectedEngineIndex);
+        if (idx >= 0)
+        {
+            _dsSelectedEngineIndex = idx;
+            DsEngineValueLabel.Text = _engineLabels[idx];
+        }
+    }
+
+    private void OnDsSpeedChanged(object sender, ValueChangedEventArgs e) => UpdateDsSpeedLabel();
+    private void OnDsPitchChanged(object sender, ValueChangedEventArgs e) => UpdateDsPitchLabel();
+    private void UpdateDsSpeedLabel() => DsSpeedValue.Text = DsSpeedSlider.Value.ToString("F2") + "×";
+    private void UpdateDsPitchLabel() => DsPitchValue.Text = DsPitchSlider.Value.ToString("F2") + "×";
+
     private async void OnDsStartClicked(object sender, EventArgs e)
     {
         var requests = new List<DsCorpusRequest>();
@@ -169,13 +196,10 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        var engines = TtsEngineHelper.GetAvailableEngines();
-        if (engines.Count == 0)
-        {
-            await DialogService.ShowAlertAsync(this, Loc.T("title_error"), Loc.T("engines_found_fmt"), Loc.T("btn_ok"));
-            return;
-        }
-        var engine = engines.FirstOrDefault(en => en.IsDefault) ?? engines.First();
+        // 从下拉框中取引擎，从滑块取语速和音高
+        var enginePackage = _enginePackages[_dsSelectedEngineIndex];
+        float speechRate = (float)DsSpeedSlider.Value;
+        float pitch = (float)DsPitchSlider.Value;
 
         DsStartBtn.IsEnabled = false;
         DsProgressBar.IsVisible = true;
@@ -187,7 +211,7 @@ public partial class MainPage : ContentPage
         try
         {
             await TtsToDiffSingerService.GenerateMixedCorpusAsync(
-                requests, engine.Name, 0.85f, 1.0f, ChkAug.IsChecked, zipPath, progress);
+                requests, enginePackage, speechRate, pitch, ChkAug.IsChecked, zipPath, progress);
 
             DsStatusLabel.Text = Loc.T("ds_corpus_done");
             DsProgressBar.Progress = 1;
@@ -210,7 +234,7 @@ public partial class MainPage : ContentPage
         }
     }
 
-    // ===== 以下为原有的 UTAU 逻辑（完全保留） =====
+    // ===== 以下为原有的 UTAU 逻辑 =====
     private void InitLanguageList()
     {
         _languageList = new List<VoicebankLanguage>
@@ -327,7 +351,11 @@ public partial class MainPage : ContentPage
 
             var defaultIdx = _localEngines.FindIndex(e => e.IsDefault);
             _selectedEngineIndex = defaultIdx >= 0 ? defaultIdx : 0;
+            _dsSelectedEngineIndex = _selectedEngineIndex;
+            
             EngineValueLabel.Text = _engineLabels[_selectedEngineIndex];
+            DsEngineValueLabel.Text = _engineLabels[_dsSelectedEngineIndex];
+            
             StatusLabel.Text = Loc.F("engines_found_fmt", _engineLabels.Count);
         }
         catch (Exception ex) { StatusLabel.Text = Loc.F("engines_load_failed_fmt", ex.Message); }
