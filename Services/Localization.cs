@@ -317,5 +317,14 @@ public static class Loc
         ["sec_cross_lang"] = ("跨语种转换", "Cross-lingual", "言語間変換"),
         ["cross_native"] = ("原生", "Native", "ネイティブ"),
         ["cross_smart"] = ("智能展示 (自动匹配)", "Smart (auto)", "スマート (自動)"),
+        ["ai_section_title"] = ("本地 AI 模型 (Beta)", "Local AI Model (Beta)", "ローカル AI モデル (Beta)"),
+        ["ai_engine_name"] = ("Kokoro 离线引擎", "Kokoro Offline Engine", "Kokoro オフラインエンジン"),
+        ["ai_not_downloaded"] = ("未下载 (约 80MB)", "Not downloaded (~80MB)", "未ダウンロード（約 80MB）"),
+        ["ai_downloaded"] = ("已下载 (就绪)", "Downloaded (Ready)", "ダウンロード済み（準備完了）"),
+        ["ai_download_btn"] = ("下载模型", "Download Model", "モデルをダウンロード"),
+        ["ai_downloading"] = ("下载中...", "Downloading...", "ダウンロード中..."),
+        ["ai_download_success"] = ("本地 AI 模型已就绪。", "Local AI model is ready.", "ローカル AI モデルの準備ができました。"),
+        ["ai_download_failed"] = ("下载失败", "Download failed", "ダウンロード失敗"),
+        ["ai_not_ready_error"] = ("本地 AI 模型尚未下载，请前往设置下载。", "Local AI model is not downloaded. Please download it in Settings.", "ローカル AI モデルがダウンロードされていません。設定からダウンロードしてください。"),
     };
 }

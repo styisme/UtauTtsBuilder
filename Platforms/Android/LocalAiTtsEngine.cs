@@ -11,7 +11,7 @@ public class LocalAiTtsEngine : IDisposable
     public async Task InitializeAsync(string languageCode)
     {
         if (!Services.LocalAiModelManager.IsModelDownloaded)
-            throw new Exception("本地 AI 模型尚未下载，请前往设置下载。");
+            throw new Exception(Services.Loc.T("ai_not_ready_error"));
 
         // TODO: 初始化 ONNX InferenceSession
         await Task.Delay(100);

@@ -63,15 +63,15 @@
             </Border>
 
             <!-- 本地 AI 模型 -->
-            <Label Text="本地 AI 模型 (Beta)" Style="{StaticResource Md3TitleMedium}" />
+            <Label x:Name="AiSectionTitle" Style="{StaticResource Md3TitleMedium}" />
             <Border Style="{StaticResource Md3Card}">
                 <VerticalStackLayout Spacing="12">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="Kokoro 离线引擎" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
-                            <Label x:Name="AiModelStatusLabel" Text="未下载" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                            <Label x:Name="AiEngineName" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="AiModelStatusLabel" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
                         </VerticalStackLayout>
-                        <Button Grid.Column="1" x:Name="DownloadAiBtn" Text="下载模型" Style="{StaticResource Md3TonalButton}" Clicked="OnDownloadAiClicked" />
+                        <Button Grid.Column="1" x:Name="DownloadAiBtn" Style="{StaticResource Md3TonalButton}" Clicked="OnDownloadAiClicked" />
                     </Grid>
                     <ProgressBar x:Name="AiDownloadProgress" IsVisible="False" ProgressColor="{DynamicResource Md3Primary}" />
                 </VerticalStackLayout>

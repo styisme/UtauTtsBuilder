@@ -39,6 +39,13 @@ public partial class SettingsPage : ContentPage
         ForceBuildTitle.Text = Loc.T("settings_force_build");
         ForceBuildHint.Text = Loc.T("settings_force_build_hint");
 
+                AiSectionTitle.Text = Loc.T("ai_section_title");
+        AiEngineName.Text = Loc.T("ai_engine_name");
+        if (LocalAiModelManager.IsModelDownloaded)
+            DownloadAiBtn.Text = Loc.T("ai_downloaded");
+        else
+            DownloadAiBtn.Text = Loc.T("ai_download_btn");
+            
         CloudBtn.Text = Loc.T("settings_cloud");
         AboutBtn.Text = Loc.T("settings_about");
     }
@@ -59,12 +66,12 @@ public partial class SettingsPage : ContentPage
     {
         if (LocalAiModelManager.IsModelDownloaded)
         {
-            AiModelStatusLabel.Text = "已下载 (就绪)";
+            AiModelStatusLabel.Text = Loc.T("ai_downloaded");
             DownloadAiBtn.IsVisible = false;
         }
         else
         {
-            AiModelStatusLabel.Text = "未下载 (约 80MB)";
+            AiModelStatusLabel.Text = Loc.T("ai_not_downloaded");
             DownloadAiBtn.IsVisible = true;
         }
     }
@@ -79,12 +86,12 @@ public partial class SettingsPage : ContentPage
         {
             var progress = new Progress<double>(p => AiDownloadProgress.Progress = p);
             await LocalAiModelManager.DownloadModelAsync(progress);
-            await DialogService.ShowAlertAsync(this, "下载完成", "本地 AI 模型已就绪。", "OK");
+            await DialogService.ShowAlertAsync(this, Loc.T("log_refresh"), Loc.T("ai_download_success"), Loc.T("btn_ok"));
             RefreshAiModelState();
         }
         catch (Exception ex)
         {
-            await DialogService.ShowAlertAsync(this, "下载失败", ex.Message, "OK");
+            await DialogService.ShowAlertAsync(this, Loc.T("ai_download_failed"), ex.Message, Loc.T("btn_ok"));
         }
         finally
         {
