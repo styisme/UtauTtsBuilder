@@ -79,8 +79,11 @@ public static class WavProcessor
         // 1. 裁掉首尾静音
         resampled = TrimSilence(resampled, TargetSampleRate);
         
-        // 2. 元音拉伸 (Target 800ms)
-        resampled = StretchVowel(resampled, TargetSampleRate, 0.8f);
+        // 2. 元音拉伸 (Beta 测试功能，根据设置决定是否开启)
+        if (AppSettings.EnableVowelStretch)
+        {
+            resampled = StretchVowel(resampled, TargetSampleRate, 0.8f);
+        }
 
         Normalize(resampled, 0.89f);
         WriteWav16(outputPath, resampled, TargetSampleRate, TargetChannels);

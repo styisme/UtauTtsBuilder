@@ -62,6 +62,18 @@
                 </Grid>
             </Border>
 
+            <!-- 测试功能 -->
+            <Label x:Name="ExperimentalLabel" Style="{StaticResource Md3TitleMedium}" />
+            <Border Style="{StaticResource Md3Card}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                        <Label x:Name="VowelStretchTitle" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
+                        <Label x:Name="VowelStretchHint" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                    </VerticalStackLayout>
+                    <Switch Grid.Column="1" x:Name="VowelStretchSwitch" OnColor="{DynamicResource Md3Primary}" Toggled="OnVowelStretchToggled" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
             <!-- 本地 AI 模型 -->
             <Label x:Name="AiSectionTitle" Style="{StaticResource Md3TitleMedium}" />
             <Border Style="{StaticResource Md3Card}">

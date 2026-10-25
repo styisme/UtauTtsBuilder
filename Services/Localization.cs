@@ -339,5 +339,8 @@ public static class Loc
         ["ds_corpus_no_text"] = ("请至少勾选一种内置语料或输入自定义文本。", "Please select at least one corpus or enter text.", "コーパスを選択するか、テキストを入力してください。"),
         ["ds_corpus_done"] = ("生成完毕！", "Generation Complete!", "生成完了！"),
         ["ds_corpus_failed"] = ("生成中断。", "Generation Interrupted.", "生成中断。"),
+        ["settings_experimental"] = ("测试功能 (Beta)", "Experimental (Beta)", "実験的機能 (Beta)"),
+        ["settings_vowel_stretch"] = ("元音拉伸", "Vowel Stretch", "母音伸長"),
+        ["settings_vowel_stretch_hint"] = ("自动拉长短元音，改善长音表现。可能导致电流声，请谨慎开启。", "Auto-stretch short vowels for better long notes. May cause artifacts.", "短い母音を自動で伸ばします。ノイズが入る場合があるため注意。"),
     };
 }

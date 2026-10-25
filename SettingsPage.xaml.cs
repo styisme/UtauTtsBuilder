@@ -38,6 +38,9 @@ public partial class SettingsPage : ContentPage
         AdvancedLabel.Text = Loc.T("settings_advanced");
         ForceBuildTitle.Text = Loc.T("settings_force_build");
         ForceBuildHint.Text = Loc.T("settings_force_build_hint");
+        ExperimentalLabel.Text = Loc.T("settings_experimental");
+        VowelStretchTitle.Text = Loc.T("settings_vowel_stretch");
+        VowelStretchHint.Text = Loc.T("settings_vowel_stretch_hint");
 
                 AiSectionTitle.Text = Loc.T("ai_section_title");
         AiEngineName.Text = Loc.T("ai_engine_name");
@@ -55,6 +58,7 @@ public partial class SettingsPage : ContentPage
         _initializing = true;
         DynamicSwitch.IsToggled = ThemeService.DynamicColorEnabled;
         ForceBuildSwitch.IsToggled = AppSettings.ForceBuild;
+        VowelStretchSwitch.IsToggled = AppSettings.EnableVowelStretch;
         AiVoiceSlider.Value = AppSettings.AiVoiceIndex;
         AiVoiceIndexLabel.Text = AppSettings.AiVoiceIndex.ToString();
         _initializing = false;
@@ -195,6 +199,12 @@ public partial class SettingsPage : ContentPage
         if (_initializing) return;
         ThemeService.DynamicColorEnabled = e.Value;
         await ApplyThemeWithAnimation();
+    }
+
+    private void OnVowelStretchToggled(object sender, ToggledEventArgs e)
+    {
+        if (_initializing) return;
+        AppSettings.EnableVowelStretch = e.Value;
     }
 
     private void OnForceBuildToggled(object sender, ToggledEventArgs e)
