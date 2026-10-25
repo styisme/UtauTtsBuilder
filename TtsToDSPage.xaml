@@ -7,47 +7,47 @@
     <Grid RowDefinitions="Auto,*,Auto">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Padding="8,12,16,12">
             <Button Grid.Column="0" Text="←" FontSize="20" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurface}" Clicked="OnBackClicked" />
-            <Label Grid.Column="1" Text="DiffSinger 语料库工厂" FontSize="18" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" Margin="4,0,0,0" />
+            <Label Grid.Column="1" x:Name="TitleLabel" FontSize="18" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" Margin="4,0,0,0" />
         </Grid>
 
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="16" Spacing="16">
                 
-                <Label Text="📚 海量内置语料 (包含所有音素)" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" />
+                <Label x:Name="CorpusSectionLabel" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" />
                 <Border Style="{StaticResource Md3Card}">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="勾选后将调用 TTS 朗读极长文本，生成庞大的语料库。" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        <Label x:Name="CorpusHintLabel" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
                         
                         <HorizontalStackLayout Spacing="8">
                             <CheckBox x:Name="ChkZh" IsChecked="True" Color="{DynamicResource Md3Primary}" />
-                            <Label Text="中文 (故乡/百科)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
-                            <Label x:Name="LblZhCount" Text="(0 字)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
+                            <Label x:Name="LblZh" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="LblZhCount" Text="(0)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
                         </HorizontalStackLayout>
                         
                         <HorizontalStackLayout Spacing="8">
                             <CheckBox x:Name="ChkJa" IsChecked="True" Color="{DynamicResource Md3Primary}" />
-                            <Label Text="日语 (虚拟歌手百科)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
-                            <Label x:Name="LblJaCount" Text="(0 字)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
+                            <Label x:Name="LblJa" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="LblJaCount" Text="(0)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
                         </HorizontalStackLayout>
                         
                         <HorizontalStackLayout Spacing="8">
                             <CheckBox x:Name="ChkEn" IsChecked="False" Color="{DynamicResource Md3Primary}" />
-                            <Label Text="英语 (国家百科)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
-                            <Label x:Name="LblEnCount" Text="(0 chars)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
+                            <Label x:Name="LblEn" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="LblEnCount" Text="(0)" VerticalOptions="Center" TextColor="{DynamicResource Md3Primary}" FontAttributes="Bold" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 
-                <Label Text="✍️ 自定义追加文本（可选）" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" Margin="0,8,0,0" />
+                <Label x:Name="CustomSectionLabel" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" Margin="0,8,0,0" />
                 <Border Style="{StaticResource Md3TextField}" Padding="8">
-                    <Editor x:Name="TextEditor" HeightRequest="80" Placeholder="在此追加你想合成的特定句子..." />
+                    <Editor x:Name="TextEditor" HeightRequest="80" />
                 </Border>
 
                 <Border Style="{StaticResource Md3Card}">
                     <VerticalStackLayout Spacing="10">
                         <HorizontalStackLayout Spacing="8">
                             <CheckBox x:Name="ChkAug" IsChecked="True" Color="{DynamicResource Md3Primary}" />
-                            <Label Text="开启数据增强 (生成 2 倍长语音料)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="AugLabel" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Border>
@@ -57,6 +57,6 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <Button Grid.Row="2" x:Name="StartBtn" Text="开始合成并打包" Style="{StaticResource Md3FilledButton}" Margin="16,0,16,24" Clicked="OnStartClicked" />
+        <Button Grid.Row="2" x:Name="StartBtn" Style="{StaticResource Md3FilledButton}" Margin="16,0,16,24" Clicked="OnStartClicked" />
     </Grid>
 </ContentPage>

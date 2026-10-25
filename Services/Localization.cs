@@ -326,5 +326,18 @@ public static class Loc
         ["ai_download_success"] = ("本地 AI 模型已就绪。", "Local AI model is ready.", "ローカル AI モデルの準備ができました。"),
         ["ai_download_failed"] = ("下载失败", "Download failed", "ダウンロード失敗"),
         ["ai_not_ready_error"] = ("本地 AI 模型尚未下载，请前往设置下载。", "Local AI model is not downloaded. Please download it in Settings.", "ローカル AI モデルがダウンロードされていません。設定からダウンロードしてください。"),
+        ["ds_corpus_title"] = ("DiffSinger 语料库工厂", "DiffSinger Corpus Factory", "DiffSinger コーパス生成"),
+        ["ds_corpus_section_builtin"] = ("📚 海量内置语料 (包含所有音素)", "📚 Built-in Corpus (Rich Phonemes)", "📚 内蔵コーパス (全音素)"),
+        ["ds_corpus_hint"] = ("勾选后将调用 TTS 朗读极长文本，生成庞大的语料库。", "Check to synthesize massive text for training.", "チェックすると長文を音声合成し、巨大なコーパスを生成します。"),
+        ["ds_corpus_zh"] = ("中文 (故乡/百科)", "Chinese (Literature/Wiki)", "中国語 (文学/百科)"),
+        ["ds_corpus_ja"] = ("日语 (虚拟歌手百科)", "Japanese (V-Singer Wiki)", "日本語 (Vシンガー百科)"),
+        ["ds_corpus_en"] = ("英语 (国家百科)", "English (Country Wiki)", "英語 (国家百科)"),
+        ["ds_corpus_section_custom"] = ("✍️ 自定义追加文本（可选）", "✍️ Custom Text (Optional)", "✍️ カスタムテキスト (任意)"),
+        ["ds_corpus_custom_ph"] = ("在此追加你想合成的特定句子...", "Enter custom sentences to synthesize...", "合成したい特定の文を入力..."),
+        ["ds_corpus_aug"] = ("开启数据增强 (生成 2 倍长语音料)", "Enable Data Augmentation (2x data)", "データ拡張を有効化 (2倍データ)"),
+        ["ds_corpus_btn_start"] = ("开始合成并打包", "Start Synthesis & Package", "合成してパッケージ化"),
+        ["ds_corpus_no_text"] = ("请至少勾选一种内置语料或输入自定义文本。", "Please select at least one corpus or enter text.", "コーパスを選択するか、テキストを入力してください。"),
+        ["ds_corpus_done"] = ("生成完毕！", "Generation Complete!", "生成完了！"),
+        ["ds_corpus_failed"] = ("生成中断。", "Generation Interrupted.", "生成中断。"),
     };
 }
