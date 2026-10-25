@@ -92,7 +92,7 @@ public partial class VoicebankListPage : ContentPage
                     await Navigation.PushAsync(new PianoRollPreviewPage(vb.DirectoryPath));
                     break;
                 case "export_ds":
-                    await ExportDiffsingerAsync(vb);
+                    await Navigation.PushAsync(new DiffSingerExportPage(vb.DirectoryPath, vb.Name));
                     break;
                 case "share":
                     if (vb.ZipPath != null)
@@ -111,24 +111,6 @@ public partial class VoicebankListPage : ContentPage
             }
         }
         catch (Exception ex) { await DialogService.ShowAlertAsync(this, "Error", ex.Message, "OK"); }
-    }
-
-    private async Task ExportDiffsingerAsync(VoicebankInfo vb)
-    {
-        try
-        {
-            await DialogService.ShowAlertAsync(this, "导出中", "正在为您打包 DiffSinger 数据集，请稍候...", "OK");
-            var zip = await DiffsingerExporter.ExportAsync(vb.DirectoryPath, vb.Name);
-            await Share.Default.RequestAsync(new ShareFileRequest
-            {
-                Title = "分享 DiffSinger 数据集",
-                File = new ShareFile(zip)
-            });
-        }
-        catch (Exception ex)
-        {
-            await DialogService.ShowAlertAsync(this, "导出失败", ex.Message, "OK");
-        }
     }
 
     private void OnRefreshClicked(object sender, EventArgs e) => Reload();

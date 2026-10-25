@@ -165,7 +165,11 @@ public partial class MainPage : ContentPage
                     Logger.Info("MainPage", "→ Manual update check");
                     await ManualCheckUpdateAsync();
                     break;
-                case "view_log":
+                case "tts_ds":
+                await Navigation.PushAsync(new TtsToDSPage());
+                break;
+
+            case "view_log":
                     Logger.Info("MainPage", "→ Log viewer");
                     await Navigation.PushAsync(new LogViewerPage());
                     break;

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="UtauTtsBuilder.DiffSingerExportPage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{DynamicResource Md3Surface}">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Padding="8,12,16,12">
+            <Button Grid.Column="0" Text="←" FontSize="20" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurface}" Clicked="OnBackClicked" />
+            <Label Grid.Column="1" Text="DiffSinger 数据集工厂" FontSize="18" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" Margin="4,0,0,0" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16" Spacing="16">
+                <Label x:Name="DescLabel" FontSize="14" TextColor="{DynamicResource Md3OnSurfaceVariant}" LineBreakMode="WordWrap" />
+
+                <Border Style="{StaticResource Md3Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox x:Name="ChkF0" IsChecked="True" Color="{DynamicResource Md3Primary}" />
+                            <Label Text="提取基频 F0 (f0.txt)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox x:Name="ChkEnergy" IsChecked="True" Color="{DynamicResource Md3Primary}" />
+                            <Label Text="提取能量 Energy (energy.txt)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox x:Name="ChkAug" IsChecked="True" Color="{DynamicResource Md3Primary}" />
+                            <Label Text="开启数据增强 (变调生成 2 倍数据)" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox x:Name="ChkConfig" IsChecked="True" Color="{DynamicResource Md3Primary}" />
+                            <Label Text="生成训练配置 config.yaml" VerticalOptions="Center" TextColor="{DynamicResource Md3OnSurface}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <ProgressBar x:Name="ProgressBar" IsVisible="False" ProgressColor="{DynamicResource Md3Primary}" />
+                <Label x:Name="StatusLabel" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="2" x:Name="ExportBtn" Text="开始生成数据集" Style="{StaticResource Md3FilledButton}" Margin="16,0,16,24" Clicked="OnExportClicked" />
+    </Grid>
+</ContentPage>
