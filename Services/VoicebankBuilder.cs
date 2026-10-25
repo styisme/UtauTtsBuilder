@@ -39,16 +39,24 @@ public class VoicebankBuilder
     public async Task BuildAsync(string outputDir, string characterName)
     {
         bool isCloud = CloudConfigService.IsCloudEngine(_enginePackage);
+        bool isLocalAi = _enginePackage == "__local_ai";
+        
         var cloudProvider = CloudConfigService.GetProvider(_enginePackage);
 
         TtsSynthesizer? localTts = null;
         CloudTtsEngine? cloudTts = null;
+        LocalAiTtsEngine? aiTts = null;
 
         var log = new StringBuilder();
         log.AppendLine("UTAU Voicebank Builder - Build Log");
         log.AppendLine("Time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         log.AppendLine("Engine: " + (_enginePackage ?? "(default)"));
-        log.AppendLine("CrossLingual: " + _crossLingual);
+        log.AppendLine("IsCloud: " + isCloud);
+        log.AppendLine("IsLocalAI: " + isLocalAi);
+        log.AppendLine("Language: " + _language);
+        log.AppendLine("SpeechRate: " + _speechRate.ToString("F2"));
+        log.AppendLine("Pitch: " + _pitch.ToString("F2"));
+        log.AppendLine("SkipExisting: " + _skipExisting);
         log.AppendLine(new string('-', 60));
 
         try
@@ -60,6 +68,11 @@ public class VoicebankBuilder
             {
                 cloudTts = new CloudTtsEngine(cloudProvider);
                 await cloudTts.InitializeAsync(langCode);
+            }
+            else if (isLocalAi)
+            {
+                aiTts = new LocalAiTtsEngine();
+                await aiTts.InitializeAsync(langCode);
             }
             else
             {
@@ -81,7 +94,6 @@ public class VoicebankBuilder
             foreach (var entry in reclist)
             {
                 current++;
-                // ★ 跨语种转换在这里发生
                 var finalTtsText = CrossLingualService.Transform(entry.TtsText, langCode, _crossLingual);
                 _progress.Report(Loc.F("prog_synth_fmt", current, total, entry.Alias));
 
@@ -112,6 +124,8 @@ public class VoicebankBuilder
 
                         if (isCloud && cloudTts != null)
                             await cloudTts.SynthesizeToFileAsync(finalTtsText, rawPath);
+                        else if (isLocalAi && aiTts != null)
+                            await aiTts.SynthesizeToFileAsync(finalTtsText, rawPath);
                         else if (localTts != null)
                             await localTts.SynthesizeToFileAsync(finalTtsText, rawPath);
                         else
@@ -145,7 +159,6 @@ public class VoicebankBuilder
             _progress.Report(Loc.T("prog_write_oto"));
             await OtoGenerator.WriteOtoIniAsync(otoEntries, Path.Combine(outputDir, "oto.ini"));
 
-            // 图标立绘等逻辑省略（保持原有）
             string? iconFileName = null, portraitFileName = null;
             if (!string.IsNullOrEmpty(_iconPath) && File.Exists(_iconPath))
             {
@@ -171,6 +184,7 @@ public class VoicebankBuilder
         finally
         {
             localTts?.Dispose();
+            aiTts?.Dispose();
         }
     }
 }

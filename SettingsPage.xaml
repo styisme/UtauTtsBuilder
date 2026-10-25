@@ -4,7 +4,6 @@
              x:Class="UtauTtsBuilder.SettingsPage"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{DynamicResource Md3Surface}">
-
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,40" Spacing="20">
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
@@ -51,7 +50,7 @@
             </Border>
             <Label x:Name="DynamicFooter" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" Margin="4,0,0,0" />
 
-            <!-- ★ 强制制作 -->
+            <!-- 高级设置 -->
             <Label x:Name="AdvancedLabel" Style="{StaticResource Md3TitleMedium}" />
             <Border Style="{StaticResource Md3Card}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -61,6 +60,21 @@
                     </VerticalStackLayout>
                     <Switch Grid.Column="1" x:Name="ForceBuildSwitch" OnColor="{DynamicResource Md3Primary}" Toggled="OnForceBuildToggled" VerticalOptions="Center" />
                 </Grid>
+            </Border>
+
+            <!-- 本地 AI 模型 -->
+            <Label Text="本地 AI 模型 (Beta)" Style="{StaticResource Md3TitleMedium}" />
+            <Border Style="{StaticResource Md3Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Kokoro 离线引擎" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" />
+                            <Label x:Name="AiModelStatusLabel" Text="未下载" FontSize="12" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1" x:Name="DownloadAiBtn" Text="下载模型" Style="{StaticResource Md3TonalButton}" Clicked="OnDownloadAiClicked" />
+                    </Grid>
+                    <ProgressBar x:Name="AiDownloadProgress" IsVisible="False" ProgressColor="{DynamicResource Md3Primary}" />
+                </VerticalStackLayout>
             </Border>
 
             <Button x:Name="CloudBtn" Style="{StaticResource Md3TonalButton}" Margin="0,8,0,0" Clicked="OnCloudSettingsClicked" />

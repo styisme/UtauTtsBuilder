@@ -52,6 +52,45 @@ public partial class SettingsPage : ContentPage
         RefreshThemeButtons();
         RefreshUiStyleButtons();
         RefreshLanguageButtons();
+        RefreshAiModelState();
+    }
+
+    private void RefreshAiModelState()
+    {
+        if (LocalAiModelManager.IsModelDownloaded)
+        {
+            AiModelStatusLabel.Text = "已下载 (就绪)";
+            DownloadAiBtn.IsVisible = false;
+        }
+        else
+        {
+            AiModelStatusLabel.Text = "未下载 (约 80MB)";
+            DownloadAiBtn.IsVisible = true;
+        }
+    }
+
+    private async void OnDownloadAiClicked(object sender, EventArgs e)
+    {
+        DownloadAiBtn.IsEnabled = false;
+        AiDownloadProgress.IsVisible = true;
+        AiDownloadProgress.Progress = 0;
+
+        try
+        {
+            var progress = new Progress<double>(p => AiDownloadProgress.Progress = p);
+            await LocalAiModelManager.DownloadModelAsync(progress);
+            await DialogService.ShowAlertAsync(this, "下载完成", "本地 AI 模型已就绪。", "OK");
+            RefreshAiModelState();
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowAlertAsync(this, "下载失败", ex.Message, "OK");
+        }
+        finally
+        {
+            DownloadAiBtn.IsEnabled = true;
+            AiDownloadProgress.IsVisible = false;
+        }
     }
 
     private void RefreshThemeButtons()
