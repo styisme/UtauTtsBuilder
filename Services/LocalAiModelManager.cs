@@ -4,18 +4,20 @@ namespace UtauTtsBuilder.Services;
 
 public static class LocalAiModelManager
 {
-    // 这里用 Kokoro 官方或社区提供的 ONNX 模型下载地址（需自行替换为真实的直链）
-    // 这里演示用占位地址，实际发布前请改为有效的托管地址
-    public const string ModelUrl = "https://github.com/styisme/UtauTtsBuilder/releases/download/v1.2.0-models/kokoro_zh_ja_en.zip";
-    public const string ModelFileName = "kokoro_models.zip";
+    public const string ModelUrl = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.int8.onnx";
+    public const string VoicesUrl = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin";
+    
+    public const string ModelFileName = "kokoro.onnx";
+    public const string VoicesFileName = "voices.bin";
 
     public static bool IsModelDownloaded
     {
         get
         {
             var path = GetModelDir();
-            // 检查是否存在模型文件（这里假设解压后有 "kokoro.onnx"）
-            return Directory.Exists(path) && File.Exists(Path.Combine(path, "kokoro.onnx"));
+            return Directory.Exists(path) 
+                && File.Exists(Path.Combine(path, ModelFileName))
+                && File.Exists(Path.Combine(path, VoicesFileName));
         }
     }
 
@@ -24,44 +26,52 @@ public static class LocalAiModelManager
         return Path.Combine(FileSystem.AppDataDirectory, "ai_models");
     }
 
-    /// <summary>
-    /// 下载并解压模型。IProgress<(long, long)> 返回已下载字节和总字节。
-    /// </summary>
     public static async Task DownloadModelAsync(IProgress<double> progress)
     {
         var targetDir = GetModelDir();
         Directory.CreateDirectory(targetDir);
 
-        var zipPath = Path.Combine(targetDir, ModelFileName);
+        await DownloadFileAsync(ModelUrl, Path.Combine(targetDir, ModelFileName), 
+            p => progress.Report(p * 0.8)); // 前 80% 是模型
+
+        await DownloadFileAsync(VoicesUrl, Path.Combine(targetDir, VoicesFileName), 
+            p => progress.Report(0.8 + p * 0.2)); // 后 20% 是音色包
+
+        progress.Report(1.0);
+    }
+
+    private static async Task DownloadFileAsync(string url, string savePath, Action<double> onProgress)
+    {
+        var tempPath = savePath + ".downloading";
         using var http = new HttpClient();
         http.DefaultRequestHeaders.UserAgent.ParseAdd("UtauTtsBuilder");
 
-        using var response = await http.GetAsync(ModelUrl, HttpCompletionOption.ResponseHeadersRead);
-        response.EnsureSuccessStatusCode();
-
-        var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-
-        using var fileStream = new FileStream(zipPath, FileMode.Create, FileAccess.Write, FileShare.None);
-        using var downloadStream = await response.Content.ReadAsStreamAsync();
-
-        var buffer = new byte[8192];
-        long totalRead = 0;
-        int read;
-        while ((read = await downloadStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        try
         {
-            await fileStream.WriteAsync(buffer, 0, read);
-            totalRead += read;
-            if (totalBytes > 0)
+            using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+            using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var downloadStream = await response.Content.ReadAsStreamAsync();
+
+            var buffer = new byte[8192];
+            long totalRead = 0;
+            int read;
+            while ((read = await downloadStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
-                progress.Report((double)totalRead / totalBytes);
+                await fileStream.WriteAsync(buffer, 0, read);
+                totalRead += read;
+                if (totalBytes > 0) onProgress((double)totalRead / totalBytes);
             }
+
+            fileStream.Close();
+            if (File.Exists(savePath)) File.Delete(savePath);
+            File.Move(tempPath, savePath);
         }
-
-        fileStream.Close();
-
-        // 解压
-        progress.Report(1.0); // 下载完成
-        System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, targetDir, true);
-        File.Delete(zipPath);
+        finally
+        {
+            if (File.Exists(tempPath)) try { File.Delete(tempPath); } catch { }
+        }
     }
 }

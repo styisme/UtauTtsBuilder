@@ -7,11 +7,10 @@
              BackgroundColor="{DynamicResource Md3Surface}">
 
     <Grid RowDefinitions="Auto,*,Auto">
-
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="8,12,16,12">
             <Button Grid.Column="0" Text="←" FontSize="20" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0" BackgroundColor="Transparent" TextColor="{DynamicResource Md3OnSurface}" Clicked="OnBackClicked" />
             <Label Grid.Column="1" x:Name="TitleLabel" FontSize="18" FontAttributes="Bold" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" Margin="4,0,0,0" />
-            <Button Grid.Column="2" x:Name="SaveBtn" Style="{StaticResource Md3TonalButton}" Clicked="OnSaveClicked" />
+            <Button Grid.Column="2" x:Name="SaveBtn" Text="保存" Style="{StaticResource Md3TonalButton}" Clicked="OnSaveClicked" />
         </Grid>
 
         <ScrollView Grid.Row="1">

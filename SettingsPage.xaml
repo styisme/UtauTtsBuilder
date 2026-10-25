@@ -77,6 +77,24 @@
                 </VerticalStackLayout>
             </Border>
 
+
+            <!-- 本地 AI 音色选择 -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="AI 音色选择 (Voice Style)" Style="{StaticResource Md3TitleMedium}" />
+                <Border Style="{StaticResource Md3Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="当前音色索引" FontSize="14" TextColor="{DynamicResource Md3OnSurface}" VerticalOptions="Center" />
+                            <Label x:Name="AiVoiceIndexLabel" FontSize="14" FontAttributes="Bold" TextColor="{DynamicResource Md3Primary}" VerticalOptions="Center" />
+                        </Grid>
+                        <Slider x:Name="AiVoiceSlider" Minimum="0" Maximum="50" Value="0" 
+                                MinimumTrackColor="{DynamicResource Md3Primary}" MaximumTrackColor="{DynamicResource Md3OutlineVariant}" ThumbColor="{DynamicResource Md3Primary}"
+                                ValueChanged="OnAiVoiceChanged" />
+                        <Label Text="注：不同的数字代表不同的性别、语言和情感（0-50）" FontSize="11" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
             <Button x:Name="CloudBtn" Style="{StaticResource Md3TonalButton}" Margin="0,8,0,0" Clicked="OnCloudSettingsClicked" />
             <Button x:Name="AboutBtn" Style="{StaticResource Md3OutlinedButton}" Clicked="OnAboutClicked" />
         </VerticalStackLayout>

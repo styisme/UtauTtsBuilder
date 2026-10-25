@@ -66,6 +66,7 @@ public partial class VoicebankListPage : ContentPage
 
         void AddAction(string key, string label) { actions.Add(label); keys[label] = key; }
 
+        // 三大扩展功能 + 基础操作
         AddAction("editor", "Oto 微调器");
         AddAction("preview", "序列试听");
         AddAction("export_ds", "导出 DiffSinger 数据集");
@@ -94,7 +95,10 @@ public partial class VoicebankListPage : ContentPage
                     await ExportDiffsingerAsync(vb);
                     break;
                 case "share":
-                    await Share.Default.RequestAsync(new ShareFileRequest { Title = "Share", File = new ShareFile(vb.ZipPath!) });
+                    if (vb.ZipPath != null)
+                        await Share.Default.RequestAsync(new ShareFileRequest { Title = "Share", File = new ShareFile(vb.ZipPath) });
+                    else
+                        await DialogService.ShowAlertAsync(this, "提示", "ZIP 文件不存在，请重新生成。", "OK");
                     break;
                 case "delete":
                     if (await DialogService.ShowConfirmAsync(this, "删除", $"确定删除 {vb.Name}?", "删除", "取消"))

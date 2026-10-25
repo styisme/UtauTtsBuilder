@@ -8,7 +8,7 @@ public partial class OtoEditorPage : ContentPage
     private string _dirPath;
     private List<string> _wavFiles = new();
     private int _currentIndex = 0;
-    private Dictionary<string, string[]> _otoData = new(); // 文件名 -> [别名, offset, consonant, cutoff, pre, overlap]
+    private Dictionary<string, string[]> _otoData = new(); 
     
     private float _offsetMs = 0, _consonantMs = 0, _cutoffMs = 0;
     private double _maxDurationMs = 1000;
@@ -54,14 +54,10 @@ public partial class OtoEditorPage : ContentPage
         
         FileNameLabel.Text = fileName;
         
-        // 波形
         var data = WaveformRenderer.GetWaveformData(file, 200);
         Waveform.WaveformData = data;
-        
-        // 时长
         _maxDurationMs = WavProcessor.GetDurationMs(file);
         
-        // 读取 oto 参数
         if (_otoData.TryGetValue(fileName, out var parts) && parts.Length >= 4)
         {
             _offsetMs = float.Parse(parts[1]);
@@ -84,7 +80,6 @@ public partial class OtoEditorPage : ContentPage
         ConsonantLabel.Text = $"{_consonantMs:F0} ms";
         CutoffLabel.Text = $"{_cutoffMs:F0} ms";
 
-        // 更新线位置（百分比）
         double width = Waveform.Width > 0 ? Waveform.Width : 300;
         AbsoluteLayout.SetLayoutBounds(OffsetLine, new Rect(width * (_offsetMs / _maxDurationMs), 0, 2, 1));
         AbsoluteLayout.SetLayoutBounds(ConsonantLine, new Rect(width * (_consonantMs / _maxDurationMs), 0, 2, 1));
@@ -110,19 +105,16 @@ public partial class OtoEditorPage : ContentPage
         _otoData[fileName][2] = _consonantMs.ToString("F0");
         _otoData[fileName][3] = _cutoffMs.ToString("F0");
 
-        // 写入文件
         var otoPath = Path.Combine(_dirPath, "oto.ini");
         var sb = new System.Text.StringBuilder();
         foreach (var kv in _otoData)
-        {
             sb.AppendLine($"{kv.Key}={string.Join(",", kv.Value)}");
-        }
         
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
         var sjis = System.Text.Encoding.GetEncoding("shift_jis");
         await File.WriteAllTextAsync(otoPath, sb.ToString(), sjis);
         
-        await DialogService.ShowAlertAsync(this, "Save", "oto.ini saved successfully.", "OK");
+        await DialogService.ShowAlertAsync(this, "保存成功", "oto.ini 已更新。", "OK");
     }
 
     private async void OnBackClicked(object sender, EventArgs e) => await Navigation.PopAsync();

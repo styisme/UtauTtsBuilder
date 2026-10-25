@@ -12,7 +12,7 @@
 
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="16" Spacing="16">
-                <Label Text="输入你想试听的音节序列（用空格或逗号隔开，如：あ か さ た な）" FontSize="14" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
+                <Label Text="输入你想试听的音节序列（用空格隔开，如：あ か さ た な）" FontSize="14" TextColor="{DynamicResource Md3OnSurfaceVariant}" />
                 <Border Style="{StaticResource Md3TextField}">
                     <Entry x:Name="SequenceEntry" Text="あ か さ た な" />
                 </Border>

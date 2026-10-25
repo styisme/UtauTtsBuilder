@@ -55,6 +55,8 @@ public partial class SettingsPage : ContentPage
         _initializing = true;
         DynamicSwitch.IsToggled = ThemeService.DynamicColorEnabled;
         ForceBuildSwitch.IsToggled = AppSettings.ForceBuild;
+        AiVoiceSlider.Value = AppSettings.AiVoiceIndex;
+        AiVoiceIndexLabel.Text = AppSettings.AiVoiceIndex.ToString();
         _initializing = false;
         RefreshThemeButtons();
         RefreshUiStyleButtons();
@@ -98,6 +100,13 @@ public partial class SettingsPage : ContentPage
             DownloadAiBtn.IsEnabled = true;
             AiDownloadProgress.IsVisible = false;
         }
+    }
+
+    private void OnAiVoiceChanged(object sender, ValueChangedEventArgs e)
+    {
+        int val = (int)Math.Round(e.NewValue);
+        AiVoiceIndexLabel.Text = val.ToString();
+        AppSettings.AiVoiceIndex = val;
     }
 
     private void RefreshThemeButtons()

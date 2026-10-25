@@ -234,7 +234,7 @@ public partial class MainPage : ContentPage
     {
         if (!string.IsNullOrWhiteSpace(NameEntry.Text)) return;
 
-        var name = label.TrimStart('★', '☁', '🧠', ' ').Trim();
+        var name = label.Replace("★", "").Replace("☁", "").Replace("🧠", "").Trim();
 
         int idx = -1;
         for (int i = 2; i < name.Length; i++)
