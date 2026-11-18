@@ -13,6 +13,10 @@
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
 [![Platform](https://img.shields.io/badge/platform-Android%205.0%2B-brightgreen)]()
 
+> **🛠️ Maintenance status: bug fixes only**
+>
+> **Since 2026-11-18 this project is in a "bug fixes only" phase: no new features will be added; only defects that break existing functionality and build/install issues will be handled.** Issues are welcome, but feature requests are not planned for now.
+
 ---
 
 ## ⚠️ AI-Generated Project Notice

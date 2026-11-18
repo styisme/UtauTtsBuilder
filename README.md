@@ -14,6 +14,12 @@
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
 [![Platform](https://img.shields.io/badge/platform-Android%205.0%2B-brightgreen)]()
 
+> **🛠️ 维护状态：仅修复 Bug（Only Fix Bugs）**
+>
+> **本项目自 2026-11-18 起进入「仅修复 Bug」阶段：不再新增功能，仅处理影响现有功能可用性的缺陷与构建/安装问题。** 欢迎提交 Issue 报告问题，但新功能建议暂不纳入开发计划。
+>
+> **Maintenance status: bug fixes only.** Since 2026-11-18 this project no longer adds new features; only defects that break existing functionality and build/install issues are handled. Issues are welcome, but feature requests are not planned.
+
 ---
 
 ## ⚠️ AI 生成声明

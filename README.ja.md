@@ -13,6 +13,10 @@
 [![Made with AI](https://img.shields.io/badge/made%20with-AI-FF6B6B)](docs/AI_DISCLOSURE.md)
 [![Platform](https://img.shields.io/badge/platform-Android%205.0%2B-brightgreen)]()
 
+> **🛠️ メンテナンス状況：バグ修正のみ**
+>
+> **本プロジェクトは 2026-11-18 より「バグ修正のみ」の段階に入りました。新機能の追加は行わず、既存機能の不具合およびビルド・インストールに関する問題のみ対応します。** Issue は歓迎しますが、新機能のご要望は当面の開発計画に含まれません。
+
 ---
 
 ## ⚠️ AI 生成に関する声明
